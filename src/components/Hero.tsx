@@ -13,7 +13,7 @@ import {
       <div className="flex justify-center items-center mt-10 px-4">
         <Card className="w-full max-w-5xl bg-[#A2D2FF] rounded-[20px] shadow-md p-[1rem]">
           <CardHeader>
-            <CardTitle className="text-[2.5rem] sm:text-[4rem] md:text-[5rem] lg:text-[7rem] font-bold text-left leading-tight">
+            <CardTitle className="text-[2.5rem] sm:text-[4rem] md:text-[5rem] lg:text-[7rem] font-stapelBold text-left leading-tight">
               Blockchain ticketing with{" "}
               <span className="text-blue-600">NFT</span>
             </CardTitle>
