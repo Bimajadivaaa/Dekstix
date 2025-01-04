@@ -15,7 +15,7 @@ export default function Ticket() {
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-stapelBold">Purchase NFT Ticket</h1>
         <p className="text-lg text-gray-700">
-          Own your unique <span className="text-blue-600 font-bold">NFT</span> ticket now and enjoy exclusive event perks!
+          Own your unique <span className="text-blue-600 font-stapelBold">NFT</span> ticket now and enjoy exclusive event perks!
         </p>
       </div>
 

@@ -11,7 +11,7 @@ export function Navbar() {
 
   const getLinkClass = (path: string) => {
     return pathname === path
-      ? "text-blue-600 font-bold"
+      ? "text-blue-600 font-stapelBold"
       : "text-black hover:text-gray-500";
   };
 
@@ -24,7 +24,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center py-4">
         {/* Logo */}
         <div>
-          <span className="font-bold text-xl text-black">
+          <span className="font-stapelBold text-xl text-black">
             <Link href="/">Dekstix</Link>
           </span>
         </div>

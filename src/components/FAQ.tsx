@@ -37,7 +37,7 @@ export default function FAQ() {
 
   return (
     <div className="p-8">
-      <h2 className="text-3xl font-bold text-center mb-8">FAQ</h2>
+      <h2 className="text-3xl font-stapelBold text-center mb-8">FAQ</h2>
       <div className="space-y-4">
         {faqs.map((faq, index) => (
           <div

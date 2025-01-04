@@ -8,7 +8,7 @@ export default function Validation() {
       <div className="text-center mb-8">
         <h1 className="text-3xl font-stapelBold mb-4">Validate your NFT</h1>    
         <p className="text-xl text-black">
-          Validate your <span className="text-blue-600 font-bold">NFT</span> to Get the Access Code!
+          Validate your <span className="text-blue-600 font-stapelBold">NFT</span> to Get the Access Code!
         </p>
       </div>
 

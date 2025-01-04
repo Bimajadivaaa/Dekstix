@@ -52,7 +52,7 @@ export default function PurchaseHistory() {
   return (
     <div className="p-4 font-stapelText">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-stapelBold">
           Purchase History of{" "}
           <span className="text-blue-600">
             {address ? `${address.substring(0, 4)}...${address.substring(address.length - 4)}` : "Not Connected"}
@@ -78,9 +78,9 @@ export default function PurchaseHistory() {
                 <TableCell>{entry.purchaseDate}</TableCell>
                 <TableCell>
                   {entry.status === "Validated" ? (
-                    <span className="text-green-600 font-bold">{entry.status}</span>
+                    <span className="text-green-600 font-stapelBold">{entry.status}</span>
                   ) : (
-                    <span className="text-red-600 font-bold">{entry.status}</span>
+                    <span className="text-red-600 font-stapelBold">{entry.status}</span>
                   )}
                 </TableCell>
               </TableRow>
@@ -98,7 +98,7 @@ export default function PurchaseHistory() {
           >
             Previous
           </button>
-          <span className="font-bold">
+          <span className="font-stapelBold">
             Page {currentPage} of {totalPages}
           </span>
           <Button
