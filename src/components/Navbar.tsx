@@ -256,10 +256,6 @@ export function Navbar() {
                   </div>
 
                   <div className="mt-6 space-y-3">
-                    <Button variant="outline" className="w-full justify-start gap-1.5">
-                      <Sparkles className="h-4 w-4 text-blue-600" />
-                      Create Event
-                    </Button>
                     <div className="pt-2">
                       <ConnectButton />
                     </div>
