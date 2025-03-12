@@ -16,47 +16,53 @@ export function EventDetail({ event, ticketTiers, onSelectTicket }: EventDetailP
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       <div className="md:col-span-1">
-        <Card className="overflow-hidden sticky top-4">
-          <div className="relative h-48 flex items-center justify-center">
+        <Card className="overflow-hidden sticky top-4 bg-[#1a1a1a] border border-white/10">
+          <div className="relative h-48 flex items-center justify-center bg-white/5 border-b border-white/10">
             <Image 
               src={event.image} 
               alt={event.title} 
-              className="w-[50%] h-full object-cover"
+              className="w-[50%] h-full object-cover filter brightness-90 contrast-125"
               width={300}
               height={200}
             />
           </div>
 
           <CardHeader>
-            <CardTitle>{event.title}</CardTitle>
-            <CardDescription>{event.description}</CardDescription>
+            <CardTitle className="text-white">{event.title}</CardTitle>
+            <CardDescription className="text-white/70">{event.description}</CardDescription>
           </CardHeader>
           
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-gray-500" />
-                <span>{event.date}</span>
+                <Calendar className="h-5 w-5 text-white/50" />
+                <span className="text-white/70">{event.date}</span>
               </div>
               
               <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-gray-500" />
-                <span>{event.location}</span>
+                <MapPin className="h-5 w-5 text-white/50" />
+                <span className="text-white/70">{event.location}</span>
               </div>
               
               <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-gray-500" />
-                <span>{event.time}</span>
+                <Clock className="h-5 w-5 text-white/50" />
+                <span className="text-white/70">{event.time}</span>
               </div>
 
               <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-gray-500" />
-                <span>{event.remaining} tickets remaining</span>
+                <Users className="h-5 w-5 text-white/50" />
+                <span className="text-white/70">{event.remaining} tickets remaining</span>
               </div>
               
               <div className="flex gap-2 flex-wrap">
                 {event.categories.map((category, index) => (
-                  <Badge key={index} variant="secondary">{category}</Badge>
+                  <Badge 
+                    key={index} 
+                    variant="outline"
+                    className="bg-white/10 text-white/70 border-white/20 hover:bg-white/20"
+                  >
+                    {category}
+                  </Badge>
                 ))}
               </div>
             </div>
@@ -65,10 +71,10 @@ export function EventDetail({ event, ticketTiers, onSelectTicket }: EventDetailP
       </div>
 
       <div className="md:col-span-2">
-        <Card>
+        <Card className="bg-[#1a1a1a] border border-white/10">
           <CardHeader>
-            <CardTitle>Select your ticket</CardTitle>
-            <CardDescription>Choose the ticket type that best suits your needs</CardDescription>
+            <CardTitle className="text-white">Select your ticket</CardTitle>
+            <CardDescription className="text-white/70">Choose the ticket type that best suits your needs</CardDescription>
           </CardHeader>
           
           <CardContent className="space-y-4">

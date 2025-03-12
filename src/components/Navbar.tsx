@@ -45,79 +45,83 @@ export function Navbar() {
       className={cn(
         "sticky top-0 z-50 w-full transition-all duration-300",
         isScrolled 
-          ? "bg-white/90 shadow-sm backdrop-blur-md" 
-          : "bg-transparent"
+          ? "bg-gradient-to-br from-black via-[#0a0a0a] to-black/90 shadow-sm backdrop-blur-md" 
+          : "bg-gradient-to-br from-black via-[#0a0a0a] to-black"
       )}
     >
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="relative h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-blue-500 to-indigo-600">
+            <div className="relative h-8 w-8 overflow-hidden rounded-full bg-white/10">
               <Ticket className="absolute -bottom-1 left-1/2 h-5 w-5 -translate-x-1/2 text-white/90 transform rotate-12" />
             </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
+            <span className="font-bold text-xl text-white">
               Dekstix
             </span>
           </Link>
 
           {/* Desktop Navigation */}
           <NavigationMenu className="hidden md:flex">
-            <NavigationMenuList>
+            <NavigationMenuList className="flex items-center gap-2">
               <NavigationMenuItem>
                 <Link href="/" legacyBehavior passHref>
-                  <NavigationMenuLink
+                  <Button 
+                    variant="outline"
+                    size="sm"
                     className={cn(
-                      navigationMenuTriggerStyle(),
-                      "gap-1.5",
-                      isActive("/") && "bg-blue-50 text-blue-700 font-medium"
+                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10",
+                      isActive("/") && "bg-white text-black"
                     )}
                   >
                     <Home className="h-4 w-4" />
                     Home
-                  </NavigationMenuLink>
+                  </Button>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link href="/Ticket/Ticket" legacyBehavior passHref>
-                  <NavigationMenuLink
+                  <Button 
+                    variant="outline"
+                    size="sm"
                     className={cn(
-                      navigationMenuTriggerStyle(),
-                      "gap-1.5",
-                      isActive("/Ticket/Ticket") && "bg-blue-50 text-blue-700 font-medium"
+                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10",
+                      isActive("/Ticket/Ticket") && "bg-white text-black"
                     )}
                   >
                     <Ticket className="h-4 w-4" />
                     Tickets
-                  </NavigationMenuLink>
+                  </Button>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link href="/Validation/Validation" legacyBehavior passHref>
-                  <NavigationMenuLink
+                  <Button 
+                    variant="outline"
+                    size="sm"
                     className={cn(
-                      navigationMenuTriggerStyle(),
-                      "gap-1.5",
-                      isActive("/Validation/Validation") && "bg-blue-50 text-blue-700 font-medium"
+                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10",
+                      isActive("/Validation/Validation") && "bg-white text-black"
                     )}
                   >
                     <QrCode className="h-4 w-4" />
                     Validation
-                  </NavigationMenuLink>
+                  </Button>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link href="/Profile/Profile" legacyBehavior passHref>
-                  <NavigationMenuLink
+                  <Button 
+                    variant="outline"
+                    size="sm"
                     className={cn(
-                      navigationMenuTriggerStyle(),
-                      "gap-1.5",
-                      isActive("/Profile/Profile") && "bg-blue-50 text-blue-700 font-medium"
+                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10",
+                      isActive("/Profile/Profile") && "bg-white text-black"
                     )}
                   >
                     <User className="h-4 w-4" />
                     Profile
-                  </NavigationMenuLink>
+                  </Button>
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>
@@ -125,6 +129,14 @@ export function Navbar() {
 
           {/* Connect Button for Desktop */}
           <div className="hidden md:flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-9 gap-1.5 rounded-full px-4 border-white/20 bg-white/5 text-white hover:bg-white/10"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-white" />
+              <span>Create Event</span>
+            </Button>
             <ConnectButton.Custom>
               {({
                 account,
@@ -153,7 +165,7 @@ export function Navbar() {
                         return (
                           <Button 
                             onClick={openConnectModal} 
-                            className="bg-blue-600 hover:bg-blue-700 rounded-full h-9"
+                            className="bg-white/10 hover:bg-white/20 rounded-full h-9 text-white"
                             size="sm"
                           >
                             Connect Wallet
@@ -167,7 +179,7 @@ export function Navbar() {
                             onClick={openChainModal}
                             variant="outline"
                             size="sm"
-                            className="h-9 px-3 rounded-full"
+                            className="h-9 px-3 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10"
                           >
                             {chain.hasIcon && (
                               <div className="mr-1.5 h-4 w-4 overflow-hidden rounded-full">
@@ -187,7 +199,7 @@ export function Navbar() {
                             onClick={openAccountModal}
                             variant="outline"
                             size="sm"
-                            className="h-9 px-3 rounded-full"
+                            className="h-9 px-3 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10"
                           >
                             {account.displayName}
                             {account.displayBalance ? ` (${account.displayBalance})` : ''}
@@ -205,26 +217,26 @@ export function Navbar() {
           <div className="md:hidden">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Button variant="ghost" size="icon" className="h-9 w-9 text-white hover:bg-white/10">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-72 sm:w-80">
+              <SheetContent side="right" className="w-72 sm:w-80 bg-black border-l border-white/10">
                 <SheetHeader className="mb-4">
                   <SheetTitle className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                    <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center">
                       <Ticket className="h-3 w-3 text-white" />
                     </div>
-                    <span className="font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
+                    <span className="font-bold text-white">
                       Dekstix
                     </span>
                   </SheetTitle>
-                  <SheetDescription>
+                  <SheetDescription className="text-white/50">
                     Blockchain-powered event ticketing
                   </SheetDescription>
                 </SheetHeader>
                 <div className="py-4">
-                  <div className="space-y-0.5">
+                  <div className="space-y-2">
                     <MobileNavLink 
                       href="/" 
                       active={isActive("/")}
@@ -256,6 +268,13 @@ export function Navbar() {
                   </div>
 
                   <div className="mt-6 space-y-3">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start gap-1.5 border-white/20 bg-white/5 text-white hover:bg-white/10"
+                    >
+                      <Sparkles className="h-4 w-4 text-white" />
+                      Create Event
+                    </Button>
                     <div className="pt-2">
                       <ConnectButton />
                     </div>
@@ -282,18 +301,18 @@ function MobileNavLink({ href, active, children, icon }: MobileNavLinkProps) {
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2 py-3 px-3 rounded-md transition-colors group",
+        "flex items-center gap-2 py-3 px-3 rounded-md transition-colors group text-white/70",
         active 
-          ? "bg-blue-50 text-blue-700 font-medium" 
-          : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+          ? "bg-white/10 text-white font-medium" 
+          : "hover:text-white hover:bg-white/5"
       )}
     >
-      {icon && <span className="text-blue-600">{icon}</span>}
+      {icon && <span className="text-white/70">{icon}</span>}
       <span>{children}</span>
       <ChevronRight 
         className={cn(
-          "h-4 w-4 ml-auto opacity-50",
-          active ? "text-blue-600 opacity-100" : "group-hover:opacity-100"
+          "h-4 w-4 ml-auto opacity-50 text-white",
+          active ? "opacity-100" : "group-hover:opacity-100"
         )} 
       />
     </Link>

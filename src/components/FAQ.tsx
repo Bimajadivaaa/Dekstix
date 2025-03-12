@@ -54,18 +54,27 @@ export default function EnhancedFAQ() {
   );
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="container mx-auto max-w-4xl">
+    <section className="py-16 px-4 bg-gradient-to-br from-black via-[#0a0a0a] to-black text-white">
+      {/* Background Decorative Elements */}
+      <div className="absolute inset-0 opacity-30 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/20 to-indigo-900/20 animate-gradient-x"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-purple-900/30 to-blue-900/30 mix-blend-overlay animate-gradient-y"></div>
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-[length:100px_100px] bg-[linear-gradient(to_right,rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.1)_1px,transparent_1px)]"></div>
+        </div>
+      </div>
+
+      <div className="container mx-auto max-w-4xl relative z-10">
         <div className="text-center mb-12">
-          <Badge className="mb-4 px-3 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">
+          <Badge className="mb-4 px-3 py-1 bg-white/10 text-white/70 rounded-full font-medium">
             Got Questions?
           </Badge>
           
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
             Frequently Asked Questions
           </h2>
           
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-white/70 max-w-2xl mx-auto">
             Everything you need to know about blockchain ticketing and how our platform works
           </p>
         </div>
@@ -73,37 +82,41 @@ export default function EnhancedFAQ() {
         {/* Search bar */}
         <div className="relative mx-auto max-w-md mb-10">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+            <Search className="h-5 w-5 text-white/50" />
           </div>
           <Input
             type="text"
             placeholder="Search frequently asked questions..."
-            className="pl-10 py-3 bg-white border-gray-200 rounded-lg focus-visible:ring-blue-500"
+            className="pl-10 py-3 bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg focus-visible:ring-white/50"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         
         {filteredFaqs.length > 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/20 overflow-hidden shadow-2xl">
             <Accordion type="single" collapsible className="w-full">
               {filteredFaqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-200 last:border-0">
-                  <AccordionTrigger className="py-5 px-6 hover:bg-gray-50 text-left font-medium text-gray-900 text-lg group">
+                <AccordionItem 
+                  key={index} 
+                  value={`item-${index}`} 
+                  className="border-b border-white/20 last:border-0 hover:bg-white/10 transition-colors duration-300"
+                >
+                  <AccordionTrigger className="py-5 px-6 text-left font-medium text-white text-lg group">
                     <div className="flex items-start gap-3">
-                      <HelpCircle className="h-5 w-5 text-blue-500 shrink-0 mt-1" />
-                      <span className="group-hover:text-blue-600">{faq.question}</span>
+                      <HelpCircle className="h-5 w-5 text-white/70 shrink-0 mt-1" />
+                      <span className="group-hover:text-white/70">{faq.question}</span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-6 pb-5 pt-0">
                     <div className="ml-8">
-                      <p className="text-gray-600 mb-3">{faq.answer}</p>
+                      <p className="text-white/70 mb-3">{faq.answer}</p>
                       <div className="flex flex-wrap gap-2 mt-3">
                         {faq.tags.map((tag, tagIndex) => (
                           <Badge 
                             key={tagIndex} 
                             variant="outline" 
-                            className="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 cursor-pointer"
+                            className="text-xs bg-white/10 border-white/20 text-white/70 hover:bg-white/20 cursor-pointer"
                             onClick={() => setSearchQuery(tag)}
                           >
                             #{tag}
@@ -117,15 +130,15 @@ export default function EnhancedFAQ() {
             </Accordion>
           </div>
         ) : (
-          <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
-            <HelpCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-800 mb-2">No matching questions</h3>
-            <p className="text-gray-500 mb-4">
+          <div className="text-center py-16 bg-white/5 backdrop-blur-xl rounded-xl border border-white/20 shadow-2xl">
+            <HelpCircle className="h-12 w-12 text-white/50 mx-auto mb-4" />
+            <h3 className="text-xl font-medium text-white mb-2">No matching questions</h3>
+            <p className="text-white/70 mb-4">
               We couldn't find any FAQs matching your search query
             </p>
             <Badge 
               variant="outline" 
-              className="cursor-pointer hover:bg-gray-100"
+              className="cursor-pointer bg-white/10 border-white/20 text-white/70 hover:bg-white/20"
               onClick={() => setSearchQuery("")}
             >
               Clear search
@@ -134,14 +147,14 @@ export default function EnhancedFAQ() {
         )}
         
         <div className="mt-10 text-center">
-          <p className="text-gray-600 mb-4">
+          <p className="text-white/70 mb-4">
             Still have questions? We're here to help!
           </p>
-          <div className="inline-flex p-0.5 rounded-lg bg-gray-100">
-            <button className="px-4 py-2 rounded-md bg-white shadow-sm text-sm font-medium text-gray-900">
+          <div className="inline-flex p-0.5 rounded-lg bg-white/10 border border-white/20">
+            <button className="px-4 py-2 rounded-md bg-white/20 backdrop-blur-xl shadow-md text-sm font-medium text-white hover:bg-white/30 transition-colors">
               Contact Support
             </button>
-            <button className="px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+            <button className="px-4 py-2 rounded-md text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors">
               Join Discord
             </button>
           </div>
