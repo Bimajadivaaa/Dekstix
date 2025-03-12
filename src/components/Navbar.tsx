@@ -129,14 +129,6 @@ export function Navbar() {
 
           {/* Connect Button for Desktop */}
           <div className="hidden md:flex items-center gap-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-9 gap-1.5 rounded-full px-4 border-white/20 bg-white/5 text-white hover:bg-white/10"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-white" />
-              <span>Create Event</span>
-            </Button>
             <ConnectButton.Custom>
               {({
                 account,
