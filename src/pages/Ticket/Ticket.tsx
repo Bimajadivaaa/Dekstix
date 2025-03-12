@@ -8,7 +8,7 @@ import {
   EventDetail,
   TicketCheckout,
 } from "../../components/Ticket";
-import { events, ticketTiers } from "./data/ticketData";
+import { events, ticketTiers } from "../../dataTicket/ticketData";
 import { Event, TicketTier } from "../../lib/type";
 
 export default function TicketingSystem() {

@@ -1,4 +1,4 @@
-import nftTicket from "../../../public/Images/nft-ticket.png"
+import nftTicket from "../public/Images/nft-ticket.png"
 
 export const events = [
   {
