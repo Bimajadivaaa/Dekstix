@@ -114,7 +114,7 @@ a {
   * {
     @apply border-border;
   }
-  body {
+  /* body {
     background-color: #E4FDFF;
-  }
+  } */
 }
