@@ -72,7 +72,7 @@ const SheetContent = React.forwardRef<
 ))
 SheetContent.displayName = SheetPrimitive.Content.displayName
 
-const SheetHeader = ({
+const SheIDReader = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -84,7 +84,7 @@ const SheetHeader = ({
     {...props}
   />
 )
-SheetHeader.displayName = "SheetHeader"
+SheIDReader.displayName = "SheIDReader"
 
 const SheetFooter = ({
   className,
@@ -131,7 +131,7 @@ export {
   SheetTrigger,
   SheetClose,
   SheetContent,
-  SheetHeader,
+  SheIDReader,
   SheetFooter,
   SheetTitle,
   SheetDescription,

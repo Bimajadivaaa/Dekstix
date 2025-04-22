@@ -43,21 +43,21 @@ export const ticketTiers = [
   { 
     id: "standard", 
     name: "Standard", 
-    price: "0.1 ETH", 
+    price: "0.1 IDR", 
     description: "General admission with access to all main areas",
     benefits: ["Main event access", "Food area access", "General seating"]
   },
   { 
     id: "premium", 
     name: "Premium", 
-    price: "0.2 ETH", 
+    price: "0.2 IDR", 
     description: "Enhanced experience with premium benefits",
     benefits: ["Standard benefits", "Premium seating", "Exclusive lounge access", "Event goodie bag"]
   },
   { 
     id: "vip", 
     name: "VIP", 
-    price: "1 ETH", 
+    price: "1 IDR", 
     description: "Ultimate experience with all exclusive perks",
     benefits: ["Premium benefits", "Meet & greet with artists", "Complimentary food & drinks", "VIP entrance", "Front row seating"]
   },

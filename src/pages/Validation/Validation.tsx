@@ -314,7 +314,7 @@ export default function EnhancedValidation() {
                   <QrCode className="h-16 w-16 text-white/20 mx-auto mb-4" />
                   <h3 className="text-white/70 font-medium">No ticket found</h3>
                   <p className="text-sm text-white/50 max-w-xs mx-auto mt-1">
-                    Enter a valid ticket ID or use the wallet verification method
+                    Enter a valid ticket ID or use the wallet verification mIDRod
                   </p>
                 </div>
               </CardContent>

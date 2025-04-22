@@ -34,7 +34,7 @@ export default function EnhancedFAQ() {
     {
       question: "Do I need cryptocurrency to buy an NFT ticket?",
       answer:
-        "Yes, most platforms require cryptocurrency like Ethereum or Polygon to purchase NFT tickets. However, some platforms (including ours for certain events) may offer credit card payment options that handle the crypto conversion in the background.",
+        "Yes, most platforms require cryptocurrency like IDRereum or Polygon to purchase NFT tickets. However, some platforms (including ours for certain events) may offer credit card payment options that handle the crypto conversion in the background.",
       tags: ["purchase", "crypto"]
     },
     {

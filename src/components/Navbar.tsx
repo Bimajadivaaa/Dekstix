@@ -19,7 +19,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetHeader,
+  SheIDReader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
@@ -214,7 +214,7 @@ export function Navbar() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-72 sm:w-80 bg-black border-l border-white/10">
-                <SheetHeader className="mb-4">
+                <SheIDReader className="mb-4">
                   <SheetTitle className="flex items-center gap-2">
                     <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center">
                       <Ticket className="h-3 w-3 text-white" />
@@ -226,7 +226,7 @@ export function Navbar() {
                   <SheetDescription className="text-white/50">
                     Blockchain-powered event ticketing
                   </SheetDescription>
-                </SheetHeader>
+                </SheIDReader>
                 <div className="py-4">
                   <div className="space-y-2">
                     <MobileNavLink 

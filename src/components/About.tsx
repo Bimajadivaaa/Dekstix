@@ -112,7 +112,7 @@ export default function About() {
                 
                 <div className="w-full mt-4 pt-4 border-t border-white/10">
                   <div className="flex justify-between items-center text-xs text-white/70">
-                    <span>Minted on Ethereum</span>
+                    <span>Minted on IDRereum</span>
                     <span className="flex items-center gap-1">
                       <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                       Verified

@@ -7,10 +7,11 @@ import {
   // polygon,
   sepolia,
 } from 'wagmi/chains';
+import { env } from './env';
 
 export const config = getDefaultConfig({
   appName: 'RainbowKit App',
-  projectId: 'YOUR_PROJECT_ID',
+  projectId: env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
   chains: [
     // mainnet,
     // polygon,
