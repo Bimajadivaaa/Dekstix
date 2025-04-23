@@ -8,7 +8,7 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import Head from "next/head";
-
+import { Toaster } from "@/components/ui/sonner"
 import { config } from "../wagmi";
 
 const client = new QueryClient();
@@ -24,6 +24,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <RainbowKitProvider>
             <Navbar />
             <Component {...pageProps}/>
+            <Toaster position="bottom-right" toastOptions={{ duration: 3000 }}/>
             <Footer />
           </RainbowKitProvider>
         </QueryClientProvider>

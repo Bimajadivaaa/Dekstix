@@ -19,7 +19,7 @@ export interface TicketTier {
   name: string;
   price: number | string; // Using number type for price
   description: string;
-  benefits?: string[];
+  benefits: string[];
   availableTickets?: number; // Make it optional
   eventId?: string;
   features?: {

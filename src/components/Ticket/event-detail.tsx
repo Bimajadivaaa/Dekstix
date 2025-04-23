@@ -19,7 +19,6 @@ export function EventDetail({
   ticketTiers,
   onSelectTicket,
 }: EventDetailProps) {
-
   const { formattedPrice: standardPrice, isFetchingData: loadingStandard } =
     useGetTicketPrice(event.id, 0);
   const { formattedPrice: premiumPrice, isFetchingData: loadingPremium } =
@@ -27,7 +26,7 @@ export function EventDetail({
   const { formattedPrice: vipPrice, isFetchingData: loadingVip } =
     useGetTicketPrice(event.id, 2);
 
-    console.log('event id', event.id);
+  console.log("event id", event.id);
 
   // Create local ticket tiers with blockchain prices
   const updatedTicketTiers = ticketTiers.map((tier) => {
@@ -54,11 +53,18 @@ export function EventDetail({
     } as TicketTier; // Explicit type cast to TicketTier
   });
 
-  const convertEthToIdr = (ethAmount: string | number) => {
-    // 1 ETH = 30,260,715 IDR (as per your rate)
-    const ethToIdrRate = 30260715;
-    const idrAmount = Number(ethAmount) * ethToIdrRate;
-    return new Intl.NumberFormat("id-ID").format(idrAmount);
+  const convertEthToIdr = (ethAmount: number | string): string => {
+    const ethToIdrRate = 30260715.43; // 1 ETH = 30,260,715.43 IDR
+    const ethValue =
+      typeof ethAmount === "string" ? parseFloat(ethAmount) : ethAmount;
+    const idrValue = ethValue * ethToIdrRate;
+
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(idrValue);
   };
 
   return (
@@ -148,7 +154,7 @@ export function EventDetail({
                   )}
 
                   <div className="text-sm text-white/60">
-                    {convertEthToIdr(ticket.price)} IDR
+                    {convertEthToIdr(ticket.price)}
                   </div>
                 </div>
               </div>
