@@ -11,19 +11,23 @@ export interface Event {
   capacity: number;
   remaining: number;
   categories: string[];
+  isActive?: boolean; 
 }
 
 export interface TicketTier {
   id: string;
   name: string;
-  price: string;
+  price: number | string; // Using number type for price
   description: string;
-  benefits: string[];
+  benefits?: string[];
+  availableTickets?: number; // Make it optional
+  eventId?: string;
   features?: {
     customNFT?: boolean;
     vipAccess?: boolean;
     transferable?: boolean;
   };
+  loading?: boolean; // Add loading state
 }
 
 export interface NFTMetadata {

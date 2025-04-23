@@ -70,7 +70,7 @@ export function Navbar() {
                     variant="outline"
                     size="sm"
                     className={cn(
-                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10",
+                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white",
                       isActive("/") && "bg-white text-black"
                     )}
                   >
@@ -85,7 +85,7 @@ export function Navbar() {
                     variant="outline"
                     size="sm"
                     className={cn(
-                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10",
+                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white",
                       isActive("/Ticket/Ticket") && "bg-white text-black"
                     )}
                   >
@@ -100,7 +100,7 @@ export function Navbar() {
                     variant="outline"
                     size="sm"
                     className={cn(
-                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10",
+                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white",
                       isActive("/Validation/Validation") && "bg-white text-black"
                     )}
                   >
@@ -115,7 +115,7 @@ export function Navbar() {
                     variant="outline"
                     size="sm"
                     className={cn(
-                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10",
+                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white",
                       isActive("/Profile/Profile") && "bg-white text-black"
                     )}
                   >
@@ -171,7 +171,7 @@ export function Navbar() {
                             onClick={openChainModal}
                             variant="outline"
                             size="sm"
-                            className="h-9 px-3 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10"
+                            className="h-9 px-3 rounded-full border-white/20 bg-white/5 text-white"
                           >
                             {chain.hasIcon && (
                               <div className="mr-1.5 h-4 w-4 overflow-hidden rounded-full">
@@ -191,7 +191,7 @@ export function Navbar() {
                             onClick={openAccountModal}
                             variant="outline"
                             size="sm"
-                            className="h-9 px-3 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10"
+                            className="h-9 px-3 rounded-full border-white/20 bg-white/5 text-white"
                           >
                             {account.displayName}
                             {account.displayBalance ? ` (${account.displayBalance})` : ''}
@@ -209,7 +209,7 @@ export function Navbar() {
           <div className="md:hidden">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 text-white hover:bg-white/10">
+                <Button variant="ghost" size="icon" className="h-9 w-9 text-white">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -262,7 +262,7 @@ export function Navbar() {
                   <div className="mt-6 space-y-3">
                     <Button 
                       variant="outline" 
-                      className="w-full justify-start gap-1.5 border-white/20 bg-white/5 text-white hover:bg-white/10"
+                      className="w-full justify-start gap-1.5 border-white/20 bg-white/5 text-white"
                     >
                       <Sparkles className="h-4 w-4 text-white" />
                       Create Event

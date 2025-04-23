@@ -8,6 +8,7 @@ import {
   sepolia,
 } from 'wagmi/chains';
 import { env } from './env';
+import { http, fallback } from 'viem';
 
 export const config = getDefaultConfig({
   appName: 'RainbowKit App',
@@ -21,4 +22,11 @@ export const config = getDefaultConfig({
     sepolia,
   ],
   ssr: true,
+  transports: {
+    // Define custom RPCs for each chain
+    [sepolia.id]: fallback([
+      http('https://ethereum-sepolia-rpc.publicnode.com'), // Primary RPC
+      http('https://rpc.sepolia.org'), // Fallback RPC (public)
+    ]),
+  },
 });

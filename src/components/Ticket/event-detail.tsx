@@ -1,10 +1,12 @@
-import { Calendar, Clock, MapPin, Users, CalendarCheck } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import Image from "next/image"
-import { TicketTierCard } from "./ticket-tier-card";
-import { Event, TicketTier } from "../../lib/type";
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Event, TicketTier } from "@/lib/type";
+import { Loader2 } from "lucide-react";
+import { useGetTicketPrice } from "@/lib/hooks/read/useGetTicketPrice";
+import Image from "next/image";
 
 interface EventDetailProps {
   event: Event;
@@ -12,82 +14,190 @@ interface EventDetailProps {
   onSelectTicket: (ticket: TicketTier) => void;
 }
 
-export function EventDetail({ event, ticketTiers, onSelectTicket }: EventDetailProps) {
+export function EventDetail({
+  event,
+  ticketTiers,
+  onSelectTicket,
+}: EventDetailProps) {
+
+  const { formattedPrice: standardPrice, isFetchingData: loadingStandard } =
+    useGetTicketPrice(event.id, 0);
+  const { formattedPrice: premiumPrice, isFetchingData: loadingPremium } =
+    useGetTicketPrice(event.id, 1);
+  const { formattedPrice: vipPrice, isFetchingData: loadingVip } =
+    useGetTicketPrice(event.id, 2);
+
+    console.log('event id', event.id);
+
+  // Create local ticket tiers with blockchain prices
+  const updatedTicketTiers = ticketTiers.map((tier) => {
+    let currentPrice = tier.price;
+    let loading = false;
+
+    // Match tier name with blockchain prices
+    if (tier.name.toLowerCase().includes("standard")) {
+      currentPrice = standardPrice ? Number(standardPrice) : tier.price;
+      loading = loadingStandard;
+    } else if (tier.name.toLowerCase().includes("premium")) {
+      currentPrice = premiumPrice ? Number(premiumPrice) : tier.price;
+      loading = loadingPremium;
+    } else if (tier.name.toLowerCase().includes("vip")) {
+      currentPrice = vipPrice ? Number(vipPrice) : tier.price;
+      loading = loadingVip;
+    }
+
+    // Make sure to preserve all original properties including availableTickets
+    return {
+      ...tier,
+      price: currentPrice,
+      loading,
+    } as TicketTier; // Explicit type cast to TicketTier
+  });
+
+  const convertEthToIdr = (ethAmount: string | number) => {
+    // 1 ETH = 30,260,715 IDR (as per your rate)
+    const ethToIdrRate = 30260715;
+    const idrAmount = Number(ethAmount) * ethToIdrRate;
+    return new Intl.NumberFormat("id-ID").format(idrAmount);
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div className="md:col-span-1">
-        <Card className="overflow-hidden sticky top-4 bg-[#1a1a1a] border border-white/10">
-          <div className="relative h-48 flex items-center justify-center bg-white/5 border-b border-white/10">
-            <Image 
-              src={event.image} 
-              alt={event.title} 
-              className="w-[50%] h-full object-cover filter brightness-90 contrast-125"
-              width={300}
-              height={200}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Event Details */}
+      <div>
+        <div className="overflow-hidden rounded-lg bg-white/5">
+          <div className="h-64 overflow-hidden">
+            <Image
+              src={event.image || "/placeholder-event.jpg"}
+              alt={event.title}
+              className="w-full h-full object-cover"
+              width={100}
+              height={100}
             />
           </div>
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-2">{event.title}</h2>
+            <p className="text-white/70 mb-4">{event.description}</p>
 
-          <CardHeader>
-            <CardTitle className="text-white">{event.title}</CardTitle>
-            <CardDescription className="text-white/70">{event.description}</CardDescription>
-          </CardHeader>
-          
-          <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-white/50" />
-                <span className="text-white/70">{event.date}</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-white/50" />
-                <span className="text-white/70">{event.location}</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-white/50" />
-                <span className="text-white/70">{event.time}</span>
+              <div>
+                <h3 className="font-medium text-sm text-white/50 mb-1">
+                  Date & Time
+                </h3>
+                <p className="text-white">
+                  {event.date} • {event.time}
+                </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-white/50" />
-                <span className="text-white/70">{event.remaining} tickets remaining</span>
+              <div>
+                <h3 className="font-medium text-sm text-white/50 mb-1">
+                  Location
+                </h3>
+                <p className="text-white">{event.location}</p>
               </div>
-              
-              <div className="flex gap-2 flex-wrap">
-                {event.categories.map((category, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="outline"
-                    className="bg-white/10 text-white/70 border-white/20 hover:bg-white/20"
-                  >
-                    {category}
-                  </Badge>
-                ))}
+
+              <div>
+                <h3 className="font-medium text-sm text-white/50 mb-1">
+                  Availability
+                </h3>
+                <p className="text-white">
+                  {event.remaining} of {event.capacity} tickets remaining
+                </p>
               </div>
+
+              {event.categories && event.categories.length > 0 && (
+                <div>
+                  <h3 className="font-medium text-sm text-white/50 mb-1">
+                    Categories
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {event.categories.map((category, idx) => (
+                      <Badge key={idx} variant="outline" className="text-xs">
+                        {category}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      <div className="md:col-span-2">
-        <Card className="bg-[#1a1a1a] border border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white">Select your ticket</CardTitle>
-            <CardDescription className="text-white/70">Choose the ticket type that best suits your needs</CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-4">
-            {ticketTiers.map((ticket) => (
-              <TicketTierCard
-                key={ticket.id}
-                ticket={ticket}
-                onSelect={onSelectTicket}
-              />
-            ))}
-          </CardContent>
-        </Card>
+      {/* Ticket Selection */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Select Ticket Type</h2>
+        <div className="space-y-4">
+          {updatedTicketTiers.map((ticket) => (
+            <Card
+              key={ticket.id}
+              className="p-5 bg-white/5 border-white/10 hover:bg-white/10 transition-colors"
+            >
+              <div className="flex justify-between items-start mb-3">
+                <h3 className="font-bold text-lg text-white">{ticket.name}</h3>
+                <div className="text-right">
+                  {ticket.loading ? (
+                    <div className="flex items-center">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <span>Loading...</span>
+                    </div>
+                  ) : (
+                    <span className="text-xl font-bold text-white">
+                      {ticket.price} ETH
+                    </span>
+                  )}
+
+                  <div className="text-sm text-white/60">
+                    {convertEthToIdr(ticket.price)} IDR
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-white/70 text-sm mb-4">{ticket.description}</p>
+
+              {ticket.benefits && ticket.benefits.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-bold mb-2 text-white">
+                    Benefits:
+                  </h4>
+                  <ul className="text-sm text-white/60 space-y-1">
+                    {ticket.benefits.map((benefit, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>{benefit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <Button
+                onClick={() => onSelectTicket(ticket)}
+                disabled={
+                  ticket.loading ||
+                  ("availableTickets" in ticket &&
+                    ticket.availableTickets !== undefined &&
+                    ticket.availableTickets <= 0)
+                }
+                className="w-full bg-white text-black hover:bg-white/90"
+              >
+                {ticket.loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading Price
+                  </>
+                ) : "availableTickets" in ticket &&
+                  ticket.availableTickets !== undefined &&
+                  ticket.availableTickets <= 0 ? (
+                  "Sold Out"
+                ) : (
+                  `Buy for ${ticket.price} ETH`
+                )}
+              </Button>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,11 +1,5 @@
 {
-    "name": "VIP Ticket #123",
-    "description": "VIP access for Event Name",
-    "image": "https://yourdomain.com/images/vip/123.png",
-    "attributes": [
-      {
-        "trait_type": "Type",
-        "value": "VIP"
-      }
-    ]
-  }
+  "name": "Premium Ticket",
+  "description": "Premium Ticket Access",
+  "image": "ipfs://bafybeibvbuvulezeotruqqcwjfdhhl5nles2idn3k5h3qferm4xkwg3zli"
+}
