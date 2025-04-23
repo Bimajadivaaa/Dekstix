@@ -282,8 +282,8 @@ export function TicketCheckout({
           <CardHeader>
             <CardTitle className="text-white">Complete your purchase</CardTitle>
             <CardDescription className="text-white/70">
-              Selected ticket: {selectedTicket.name} ({selectedTicket.price} ETH)
-              {selectedTokenId && <span> - Token #{String(selectedTokenId)}</span>}
+              Selected ticket: <span className="font-bold">{selectedTicket.name}</span> 
+              {selectedTokenId && <span> - NFT Token ID : {String(selectedTokenId)}</span>}
             </CardDescription>
           </CardHeader>
 
