@@ -528,14 +528,14 @@ export default function EnhancedValidation() {
                               <SelectItem
                                 key={ticket.tokenId.toString()}
                                 value={ticket.tokenId.toString()}
-                                className="text-white hover:bg-white/10"
+                                className="text-white hover:bg-white/5 focus:bg-white/5 cursor-pointer"
                               >
                                 <div className="flex items-center gap-2">
-                                  <Ticket className="h-4 w-4" />
-                                  <span>Ticket {Number(ticket.tokenId)}</span>
+                                  <Ticket className="h-4 w-4 text-white" />
+                                  <span className="text-sm font-mono font-medium text-white">Ticket {Number(ticket.tokenId)}</span>
                                   <Badge
                                     variant="outline"
-                                    className="ml-auto bg-green-900 border-white/20 text-white/80"
+                                    className="ml-auto bg-white/20 border-white/20 text-white/80 hover:bg-transparent"
                                   >
                                     <span className="text-xs font-medium text-white">
                                       {TICKET_TYPES[ticket.ticketType] ||
@@ -752,7 +752,7 @@ export default function EnhancedValidation() {
                 </Button>
               ) : isProcessing ? (
               <div className="flex items-center justify-center flex-col">
-              <p className="text-white/70 text-sm mb-2">Wait for your code ticket is generating</p>
+              <p className="text-white/70 text-sm mb-2">Please Wait for your code ticket is generating...</p>
                 <Button
                   disabled
                   className="w-full max-w-xs bg-white/10 text-white"
