@@ -10,7 +10,11 @@ import { Button } from "./ui/button";
 import { Sparkles, Ticket, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useScrollTo } from "@/lib/hooks/useScrollTo";
+
 export default function Hero() {
+  const scrollTo = useScrollTo();
+
   return (
     <div className="relative overflow-hidden pb-20 bg-gradient-to-br from-black via-[#0a0a0a] to-black font-mono">
       {/* Background Decorative Elements */}
@@ -44,20 +48,28 @@ export default function Hero() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                size="lg"
-                className="gap-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white"
-              >
-                <Ticket className="h-5 w-5" />
-                Browse Events
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="gap-2 rounded-xl border-white/20 bg-white/5 text-white hover:bg-white/10"
-              >
-                Learn How It Works
-              </Button>
+              <Link href="/Ticket/Ticket">
+                <Button
+                  size="lg"
+                  className="gap-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white"
+                >
+                  <Ticket className="h-5 w-5" />
+                  Browse Events
+                </Button>
+              </Link>
+              <Link href="#works">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="gap-2 rounded-xl bg-white/10 hover:bg-white border border-white/20 text-white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollTo('works');
+                  }}
+                >
+                  Learn How It Works
+                </Button>
+              </Link>
             </div>
 
             {/* <div className="flex items-center gap-6 pt-4">
@@ -122,7 +134,7 @@ export default function Hero() {
 
                   <div className="flex justify-between items-center">
                     <div className="font-mono text-xs text-white/70">
-                      NFT Contract Address :  
+                      NFT Contract Address :
                       <span className="ml-2">
                         <a
                           href="https://sepolia.etherscan.io/address/0x57b0aa66587b487c58a8f585fa6ce83b52a2c635"

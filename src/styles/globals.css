@@ -118,3 +118,15 @@ a {
     background-color: #E4FDFF;
   } */
 }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 2rem; /* Adjust based on your header height */
+}
+
+/* For Safari support */
+@supports (-webkit-overflow-scrolling: touch) {
+  html {
+    scroll-behavior: auto;
+  }
+}
