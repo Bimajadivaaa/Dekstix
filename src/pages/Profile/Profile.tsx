@@ -47,8 +47,6 @@ import {
   User,
   LogOut,
   Check,
-  Filter,
-  Download,
   Loader2,
   HelpCircle,
   Eye,
@@ -68,7 +66,7 @@ import {
 } from "@/components/ui/dialog";
 import { QRCode } from "@/components/ui/qr-code";
 import { useGetTicketCode } from "@/lib/hooks/read/useGetTicketCode";
-import { TICKETING_ADDRESS, TICKETING_ABI } from "@/config/const";
+import { TICKETING_ADDRESS } from "@/config/const";
 
 const SEPOLIA_EXPLORER = "https://sepolia.etherscan.io";
 
@@ -315,53 +313,12 @@ export default function Profile() {
               <CardHeader className="pb-2">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <CardTitle className="text-white">
+                    <CardTitle className="text-white text-4xl font-mono">
                       My NFT Ticket Collection
                     </CardTitle>
-                    <CardDescription className="text-white/70">
+                    <CardDescription className="text-white/70 mt-4 text-md font-mono">
                       Manage and validate your NFT tickets
                     </CardDescription>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-9 bg-white/10 text-white border-white/20 hover:bg-white/20"
-                        >
-                          <Filter className="h-4 w-4 mr-2" />
-                          <span>Filter</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="bg-[#1a1a1a] border-white/10"
-                      >
-                        <DropdownMenuItem className="cursor-pointer text-white/70 hover:bg-white/10">
-                          All tickets
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer text-white/70 hover:bg-white/10">
-                          Upcoming
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer text-white/70 hover:bg-white/10">
-                          Active
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer text-white/70 hover:bg-white/10">
-                          Past
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-9 bg-white/10 text-white border-white/20 hover:bg-white/20"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      <span>Export</span>
-                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -674,7 +631,7 @@ export default function Profile() {
                               }
                             >
                               {purchase.isUsed
-                                ? "Used"
+                                ? "Ticket code generated"
                                 : purchase.isExpired
                                 ? "Expired"
                                 : "Valid"}

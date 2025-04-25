@@ -22,10 +22,12 @@ function MyApp({ Component, pageProps }: AppProps) {
       <WagmiProvider config={config}>
         <QueryClientProvider client={client}>
           <RainbowKitProvider>
-            <Navbar />
-            <Component {...pageProps}/>
-            <Toaster position="bottom-right" toastOptions={{ duration: 3000 }}/>
-            <Footer />
+            <div className="font-mono">
+              <Navbar />
+              <Component {...pageProps}/>
+              <Toaster position="bottom-right" toastOptions={{ duration: 3000 }}/>
+              <Footer />
+            </div>
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>

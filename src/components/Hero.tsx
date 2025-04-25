@@ -12,7 +12,7 @@ import Image from "next/image";
 
 export default function Hero() {
   return (
-    <div className="relative overflow-hidden pb-20 bg-gradient-to-br from-black via-[#0a0a0a] to-black">
+    <div className="relative overflow-hidden pb-20 bg-gradient-to-br from-black via-[#0a0a0a] to-black font-mono">
       {/* Background Decorative Elements */}
       <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>
       
@@ -33,7 +33,7 @@ export default function Hero() {
                 <span>Redefining Event Ticketing</span>
               </div>
               
-              <h1 className="text-5xl md:text-6xl font-extrabold text-white tracking-tight">
+              <h1 className="text-5xl md:text-6xl fontextrabold text-white tracking-tight font-mono">
                 Blockchain ticketing with{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-white/70 to-white/50 inline-block relative">
                   NFT

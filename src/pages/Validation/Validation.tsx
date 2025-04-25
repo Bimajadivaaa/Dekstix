@@ -460,7 +460,8 @@ export default function EnhancedValidation() {
                       </div>
                       <div className="flex items-center justify-center text-green-500
                       text-center border border-green-400/20 rounded-xl bg-transparent p-2 text-sm font-bold">Success Generated Ticket Code</div>
-                    </div>
+                    </div>                    
+
                   )}
 
                   {isProcessing && (
@@ -491,7 +492,7 @@ export default function EnhancedValidation() {
                               <p className="text-sm text-white/90 mb-1">
                                 Your Ticket Code:
                               </p>
-                              <code className="font-mono text-sm font-bold text-white bg-white/10 px-3 py-1 rounded-lg">
+                              <code className="font-mono text-sm font-bold text-white bg-white/10 px-3 py-1 rounded-lg flex items-center justify-center">
                                 {fetchedTicketCode}
                               </code>
                             </div>
@@ -503,8 +504,53 @@ export default function EnhancedValidation() {
                 </div>
               </div>
 
-              {/* Move QR Code display here */}
-           
+              {/* Add QR Code and Ticket Code section below NFT image */}
+              {validationComplete && fetchedTicketCode && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-8 space-y-6"
+                >
+                  <div className="bg-white/5 rounded-xl border border-white/10 p-3 flex flex-col items-center gap-4">
+                    <div className="bg-white/5 rounded-lg p-4">
+                      <QRCode value={fetchedTicketCode} />
+                    </div>
+                    <div className="text-center space-y-1">
+                      <p className="text-sm text-white/70 p-2">Your Ticket Code:</p>
+                      <div className="flex items-center gap-2 justify-center">
+                        <code className="font-mono text-base font-bold text-white bg-white/10 px-2 py-2 rounded-lg">
+                          {fetchedTicketCode}
+                        </code>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 text-white/50 hover:text-white hover:bg-white/10"
+                          onClick={() => {
+                            navigator.clipboard.writeText(fetchedTicketCode);
+                            toast.success("Ticket code copied to clipboard");
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-center w-full">
+                    <Button
+                      variant="outline"
+                      className="w-full bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border-white/10"
+                      onClick={() => {
+                        setValidationComplete(false);
+                        setShowQRCode(false);
+                        setShowTicketCode(false);
+                        setProgress(0);
+                      }}
+                    >
+                      Back to Validation
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
 
               {isConnected &&
                 hasNFTs &&
