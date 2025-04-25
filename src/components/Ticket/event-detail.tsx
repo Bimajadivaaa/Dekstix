@@ -7,6 +7,7 @@ import { Event, TicketTier } from "@/lib/type";
 import { Loader2 } from "lucide-react";
 import { useGetTicketPrice } from "@/lib/hooks/read/useGetTicketPrice";
 import Image from "next/image";
+import { useEthPrice } from "@/lib/hooks/use-eth-price";
 
 interface EventDetailProps {
   event: Event;
@@ -25,6 +26,8 @@ export function EventDetail({
     useGetTicketPrice(event.id, 1);
   const { formattedPrice: vipPrice, isFetchingData: loadingVip } =
     useGetTicketPrice(event.id, 2);
+
+  const { convertEthToIdr, isLoading: isLoadingPrice } = useEthPrice();
 
   console.log("event id", event.id);
 
@@ -52,20 +55,6 @@ export function EventDetail({
       loading,
     } as TicketTier; // Explicit type cast to TicketTier
   });
-
-  const convertEthToIdr = (ethAmount: number | string): string => {
-    const ethToIdrRate = 30260715.43; // 1 ETH = 30,260,715.43 IDR
-    const ethValue =
-      typeof ethAmount === "string" ? parseFloat(ethAmount) : ethAmount;
-    const idrValue = ethValue * ethToIdrRate;
-
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(idrValue);
-  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -153,8 +142,12 @@ export function EventDetail({
                     </span>
                   )}
 
-                  <div className="text-sm text-white/60">
-                    {convertEthToIdr(ticket.price)}
+                  <div className="text-sm text-white/70">
+                    {isLoadingPrice ? (
+                      <span>Loading price...</span>
+                    ) : (
+                      <span>~ {convertEthToIdr(ticket.price)}</span>
+                    )}
                   </div>
                 </div>
               </div>

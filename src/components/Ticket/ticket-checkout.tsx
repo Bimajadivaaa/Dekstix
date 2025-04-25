@@ -26,6 +26,7 @@ import { useGetTokenIDbyType } from "@/lib/hooks/read/useGetTokenIDbyType";
 import { useBuyTicket } from "@/lib/hooks/write/useBuyTicket";
 import { useGenerateTicketVIPImage } from "@/lib/hooks/write/useGenerateTicketVIP";
 import { toast } from "sonner";
+import { useEthPrice } from "@/lib/hooks/use-eth-price";
 
 interface TicketCheckoutProps {
   selectedEvent: Event;
@@ -76,6 +77,8 @@ export function TicketCheckout({
     txHash
   } = useBuyTicket();
   
+  const { convertEthToIdr, isLoading: isLoadingPrice } = useEthPrice();
+  
   // Auto-select first token
   useEffect(() => {
     if (tokenIds && tokenIds.length > 0 && !selectedTokenId) {
@@ -91,19 +94,6 @@ export function TicketCheckout({
       }, 2000); // Give the blockchain some time to update
     }
   }, [isBuyTicketSuccess, txHash, refetchTokenIds]);
-
-  const convertEthToIdr = (ethAmount: number | string): string => {
-    const ethToIdrRate = 30260715.43; 
-    const ethValue = typeof ethAmount === 'string' ? parseFloat(ethAmount) : ethAmount;
-    const idrValue = ethValue * ethToIdrRate;
-    
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(idrValue);
-  };
 
   const handleGenerateArt = async () => {
     try {
@@ -266,7 +256,7 @@ export function TicketCheckout({
             <div className="flex items-center gap-2">
               <Ticket className="h-5 w-5 text-white/50" />
               <span className="text-white/70">
-                {selectedTicket.name} - {selectedTicket.price} ETH / {convertEthToIdr(selectedTicket.price)}
+                {selectedTicket.name} - {selectedTicket.price} ETH
               </span>
             </div>
             
@@ -370,11 +360,19 @@ export function TicketCheckout({
                 <h3 className="font-medium mb-2 text-white">Price Summary:</h3>
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-white/70">{selectedTicket.name}</span>
-                  <span className="text-white/90">{selectedTicket.price} ETH</span>
+                  <span className="text-white/90">
+                    {selectedTicket.price} ETH
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-white/60">IDR Equivalent</span>
-                  <span className="text-white/60">{convertEthToIdr(selectedTicket.price)}</span>
+                  <span className="text-white/60">
+                    {isLoadingPrice ? (
+                      <span>Loading price...</span>
+                    ) : (
+                      <span>~ {convertEthToIdr(selectedTicket.price)}</span>
+                    )}
+                  </span>
                 </div>
               </div>
               
