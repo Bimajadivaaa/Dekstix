@@ -58,36 +58,43 @@ import { useGetHistoryPurchase } from "@/lib/hooks/read/useGetHistoryPurchase";
 import { useWallet } from "@/lib/hooks/use-wallet";
 import { toast } from "sonner";
 import { useGetStatusNFT } from "@/lib/hooks/read/useGetStatusNFT";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { QRCode } from "@/components/ui/qr-code";
 import { useGetTicketCode } from "@/lib/hooks/read/useGetTicketCode";
-import { TICKETING_ADDRESS } from "@/config/const";
+import { TICKETING_ADDRESS, TICKETING_ABI } from "@/config/const";
+
+const SEPOLIA_EXPLORER = "https://sepolia.etherscan.io";
 
 export default function Profile() {
   const { address } = useWallet();
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [selectedTicketForQR, setSelectedTicketForQR] = useState<bigint | null>(null);
+  const [selectedTicketForQR, setSelectedTicketForQR] = useState<bigint | null>(
+    null
+  );
 
   // Use the hooks to get ticket and purchase history data
-  const { 
-    tickets = [], 
+  const {
+    tickets = [],
     isLoading: isLoadingTickets,
-    refetch: refetchTickets 
+    refetch: refetchTickets,
   } = useGetMyTicket();
 
-  const { 
-    purchaseHistory = [], 
+  const {
+    purchaseHistory = [],
     isLoading: isLoadingHistory,
     refetch: refetchHistory,
-    hasHistory 
+    hasHistory,
   } = useGetHistoryPurchase();
 
   // Get ticket code for QR display
-  const {
-    ticketCode: qrTicketCode,
-    isLoading: isLoadingQRCode
-  } = useGetTicketCode(selectedTicketForQR || undefined);
+  const { ticketCode: qrTicketCode, isLoading: isLoadingQRCode } =
+    useGetTicketCode(selectedTicketForQR || undefined);
 
   // Set mounted state once client is ready
   useEffect(() => {
@@ -119,10 +126,10 @@ export default function Profile() {
 
   // Format date from timestamp
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(timestamp * 1000).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -135,7 +142,7 @@ export default function Profile() {
   };
 
   // Map ticket types to their names
-  const TICKET_TYPES = ['STANDARD', 'PREMIUM', 'VIP'];
+  const TICKET_TYPES = ["STANDARD", "PREMIUM", "VIP"];
 
   // Get ticket status for each ticket
   const getTicketValidationStatus = (tokenId: bigint) => {
@@ -162,53 +169,58 @@ export default function Profile() {
 
         <div className="container mx-auto relative z-10">
           <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-            <Avatar className="h-24 w-24 border-4 border-white/20">
-              <AvatarImage src="" />
-              <AvatarFallback className="bg-white/10 text-white/70 text-xl">
-                {mounted ? (address ? address.substring(2, 4).toUpperCase() : "NC") : ""}
-              </AvatarFallback>
-            </Avatar>
-
-            <div className="text-center md:text-left">
-              <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
-                <h1 className="text-2xl font-bold text-white">
-                  Crypto Collector
-                </h1>
-              </div>
-
-              <div
-                className="flex items-center justify-center md:justify-start gap-2 text-white/70 bg-white/10 rounded-full px-3 py-1.5 w-fit mx-auto md:mx-0 cursor-pointer hover:bg-white/20 transition"
-                onClick={handleCopyAddress}
-              >
-                <Wallet className="h-3.5 w-3.5" />
-                <span className="text-sm font-mono">
-                  {mounted ? truncateAddress(address) : ""}
-                </span>
-                {mounted && (copiedAddress ? (
-                  <Check className="h-3.5 w-3.5 text-green-400" />
-                ) : (
-                  <Copy className="h-3.5 w-3.5 opacity-70" />
-                ))}
-              </div>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-blue-500 rounded-full opacity-75 group-hover:opacity-100 blur transition duration-1000 group-hover:duration-200"></div>
+              <Avatar className="h-24 w-24 ring-2 ring-white/20 relative">
+                <AvatarImage src="" />
+                <AvatarFallback className="bg-gradient-to-br from-purple-500/20 via-blue-500/20 to-indigo-500/20 text-white font-bold text-xl">
+                  <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full"></div>
+                  <div className="relative flex items-center justify-center w-full h-full bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-500 rounded-full">
+                    {mounted ? (
+                      address ? (
+                        <div className="flex flex-col items-center justify-center">
+                          {/* <span className="text-2xl">{address.substring(2, 4).toUpperCase()}</span> */}
+                          {/* <div className="w-8 h-0.5 bg-white/30 rounded-full mt-1"></div> */}
+                        </div>
+                      ) : (
+                        <User className="w-12 h-12 text-white/70" />
+                      )
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                </AvatarFallback>
+              </Avatar>
             </div>
           </div>
-
+          <div className="text-center md:text-left mt-6">
+            <div
+              className="flex items-center justify-center md:justify-start gap-2 text-white/70 bg-gradient-to-r from-white/10 to-white/5 rounded-full px-4 py-2 w-fit mx-auto md:mx-0 cursor-pointer hover:from-white/20 hover:to-white/10 transition-all duration-300 border border-white/10 backdrop-blur-sm"
+              onClick={handleCopyAddress}
+            >
+              <Wallet className="h-4 w-4 text-white/50" />
+              <span className="text-sm font-mono font-medium text-white">
+                {mounted ? truncateAddress(address) : ""}
+              </span>
+              {mounted &&
+                (copiedAddress ? (
+                  <Check className="h-4 w-4 text-green-400" />
+                ) : (
+                  <Copy className="h-4 w-4 text-white/30 hover:text-white/50" />
+                ))}
+            </div>
+          </div>
           <div className="flex flex-wrap gap-6 justify-center md:justify-start text-white mt-8">
-            <div className="bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <div className="text-2xl font-bold">{tickets.length}</div>
-              <div className="text-xs text-white/70">NFT Tickets</div>
-            </div>
-            <div className="bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <div className="text-2xl font-bold">
-                {tickets.filter(ticket => getTicketStatus(Number(ticket.eventId)) === "upcoming").length}
+            <div className="bg-gradient-to-r from-white/10 to-white/5 rounded-lg px-6 py-4 backdrop-blur-sm border border-white/10 hover:from-white/20 hover:to-white/10 transition-all duration-300">
+              <div className="flex items-center gap-3">
+                <Ticket className="h-5 w-5 text-white/50" />
+                <div>
+                  <div className="text-3xl font-bold bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">
+                    {tickets.length}
+                  </div>
+                  <div className="text-sm text-white/50">NFT Tickets</div>
+                </div>
               </div>
-              <div className="text-xs text-white/70">Upcoming Events</div>
-            </div>
-            <div className="bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <div className="text-2xl font-bold">
-                {tickets.filter(ticket => getTicketStatus(Number(ticket.eventId)) === "past").length}
-              </div>
-              <div className="text-xs text-white/70">Past Events</div>
             </div>
           </div>
         </div>
@@ -301,8 +313,12 @@ export default function Profile() {
                 ) : tickets.length === 0 ? (
                   <div className="text-center py-12">
                     <Ticket className="h-12 w-12 mx-auto mb-4 text-white/30" />
-                    <h3 className="text-xl font-semibold text-white/70 mb-2">No NFT Tickets Found</h3>
-                    <p className="text-white/50">You don't have any NFT tickets yet.</p>
+                    <h3 className="text-xl font-semibold text-white/70 mb-2">
+                      No NFT Tickets Found
+                    </h3>
+                    <p className="text-white/50">
+                      You don't have any NFT tickets yet.
+                    </p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -368,7 +384,8 @@ export default function Profile() {
                                 <div className="flex items-center gap-2">
                                   <Ticket className="h-4 w-4 text-white/50" />
                                   <span className="text-white/70">
-                                    {TICKET_TYPES[ticket.ticketType] || "Standard"}
+                                    {TICKET_TYPES[ticket.ticketType] ||
+                                      "Standard"}
                                   </span>
                                 </div>
                               </div>
@@ -379,7 +396,9 @@ export default function Profile() {
                               {status === "past" ? (
                                 <Button
                                   className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                                  onClick={() => setSelectedTicketForQR(ticket.tokenId)}
+                                  onClick={() =>
+                                    setSelectedTicketForQR(ticket.tokenId)
+                                  }
                                 >
                                   <QrCode className="h-4 w-4 mr-2" />
                                   Show QR Code
@@ -387,7 +406,9 @@ export default function Profile() {
                               ) : getTicketValidationStatus(ticket.tokenId) ? (
                                 <Button
                                   className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                                  onClick={() => setSelectedTicketForQR(ticket.tokenId)}
+                                  onClick={() =>
+                                    setSelectedTicketForQR(ticket.tokenId)
+                                  }
                                 >
                                   <QrCode className="h-4 w-4 mr-2" />
                                   Show QR Code
@@ -397,7 +418,9 @@ export default function Profile() {
                                   className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
                                   asChild
                                 >
-                                  <Link href={`/validation?tokenId=${ticket.tokenId}`}>
+                                  <Link
+                                    href={`/validation?tokenId=${ticket.tokenId}`}
+                                  >
                                     <QrCode className="h-4 w-4 mr-2" />
                                     Validate Ticket
                                   </Link>
@@ -405,7 +428,12 @@ export default function Profile() {
                               )}
 
                               {/* QR Code Dialog */}
-                              <Dialog open={selectedTicketForQR === ticket.tokenId} onOpenChange={() => setSelectedTicketForQR(null)}>
+                              <Dialog
+                                open={selectedTicketForQR === ticket.tokenId}
+                                onOpenChange={() =>
+                                  setSelectedTicketForQR(null)
+                                }
+                              >
                                 <DialogContent className="bg-[#1a1a1a] border-white/10 text-white">
                                   <DialogHeader>
                                     <DialogTitle>Ticket QR Code</DialogTitle>
@@ -417,7 +445,9 @@ export default function Profile() {
                                       <>
                                         <QRCode value={qrTicketCode || ""} />
                                         <div className="text-center">
-                                          <p className="text-sm text-white/70 mb-2">Ticket Code:</p>
+                                          <p className="text-sm text-white/70 mb-2">
+                                            Ticket Code:
+                                          </p>
                                           <code className="font-mono text-lg font-bold text-white bg-white/5 px-3 py-1 rounded">
                                             {formatTicketCode(qrTicketCode)}
                                           </code>
@@ -446,10 +476,13 @@ export default function Profile() {
                                     Token ID: {Number(ticket.tokenId)}
                                   </DropdownMenuLabel>
                                   <DropdownMenuSeparator className="bg-white/10" />
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     className="text-white/70 hover:bg-white/10 cursor-pointer"
                                     onClick={() => {
-                                      window.open(`https://testnets.opensea.io/assets/sepolia/${TICKETING_ADDRESS}/${ticket.tokenId}`, '_blank');
+                                      window.open(
+                                        `https://testnets.opensea.io/assets/sepolia/${TICKETING_ADDRESS}/${ticket.tokenId}`,
+                                        "_blank"
+                                      );
                                     }}
                                   >
                                     <ExternalLink className="h-4 w-4 mr-2" />
@@ -494,8 +527,12 @@ export default function Profile() {
                 ) : !hasHistory ? (
                   <div className="text-center py-12">
                     <History className="h-12 w-12 mx-auto mb-4 text-white/30" />
-                    <h3 className="text-xl font-semibold text-white/70 mb-2">No Purchase History</h3>
-                    <p className="text-white/50">You haven't purchased any tickets yet.</p>
+                    <h3 className="text-xl font-semibold text-white/70 mb-2">
+                      No Purchase History
+                    </h3>
+                    <p className="text-white/50">
+                      You haven't purchased any tickets yet.
+                    </p>
                   </div>
                 ) : (
                   <Table>
@@ -504,9 +541,15 @@ export default function Profile() {
                     </TableCaption>
                     <TableHeader>
                       <TableRow className="border-white/10 hover:bg-white/5">
-                        <TableHead className="text-white/70">Event Name</TableHead>
-                        <TableHead className="text-white/70">Event Date</TableHead>
-                        <TableHead className="text-white/70">Ticket Code</TableHead>
+                        <TableHead className="text-white/70">
+                          Event Name
+                        </TableHead>
+                        <TableHead className="text-white/70">
+                          Event Date
+                        </TableHead>
+                        <TableHead className="text-white/70">
+                          Ticket Code
+                        </TableHead>
                         <TableHead className="text-white/70">Type</TableHead>
                         <TableHead className="text-white/70">Status</TableHead>
                         <TableHead className="text-right text-white/70">
@@ -565,12 +608,16 @@ export default function Profile() {
                                 align="end"
                                 className="bg-[#1a1a1a] border-white/10"
                               >
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   className="text-white/70 hover:bg-white/10 cursor-pointer"
                                   onClick={() => {
                                     if (purchase.ticketCode) {
-                                      navigator.clipboard.writeText(purchase.ticketCode);
-                                      toast.success("Ticket code copied to clipboard");
+                                      navigator.clipboard.writeText(
+                                        purchase.ticketCode
+                                      );
+                                      toast.success(
+                                        "Ticket code copied to clipboard"
+                                      );
                                     }
                                   }}
                                   disabled={!purchase.ticketCode}
@@ -578,12 +625,39 @@ export default function Profile() {
                                   <Copy className="h-4 w-4 mr-2" />
                                   <span>Copy Ticket Code</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   className="text-white/70 hover:bg-white/10 cursor-pointer"
-                                  onClick={() => setSelectedTicketForQR(purchase.tokenId)}
+                                  onClick={() =>
+                                    setSelectedTicketForQR(purchase.tokenId)
+                                  }
                                 >
                                   <QrCode className="h-4 w-4 mr-2" />
                                   <span>Show QR Code</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator className="bg-white/10" />
+                                <DropdownMenuItem
+                                  className="text-white/70 hover:bg-white/10 cursor-pointer"
+                                  onClick={() => {
+                                    window.open(
+                                      `${SEPOLIA_EXPLORER}/nft/${TICKETING_ADDRESS}/${purchase.tokenId}`,
+                                      "_blank"
+                                    );
+                                  }}
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  <span>View on Explorer</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-white/70 hover:bg-white/10 cursor-pointer"
+                                  onClick={() => {
+                                    window.open(
+                                      `https://testnets.opensea.io/assets/sepolia/${TICKETING_ADDRESS}/${purchase.tokenId}`,
+                                      "_blank"
+                                    );
+                                  }}
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  <span>View on OpenSea Testnet</span>
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -595,7 +669,10 @@ export default function Profile() {
                 )}
 
                 {/* QR Code Dialog for Purchase History */}
-                <Dialog open={selectedTicketForQR !== null} onOpenChange={() => setSelectedTicketForQR(null)}>
+                <Dialog
+                  open={selectedTicketForQR !== null}
+                  onOpenChange={() => setSelectedTicketForQR(null)}
+                >
                   <DialogContent className="bg-[#1a1a1a] border-white/10 text-white">
                     <DialogHeader>
                       <DialogTitle>Ticket QR Code</DialogTitle>
@@ -607,7 +684,9 @@ export default function Profile() {
                         <>
                           <QRCode value={qrTicketCode || ""} />
                           <div className="text-center">
-                            <p className="text-sm text-white/70 mb-2">Ticket Code:</p>
+                            <p className="text-sm text-white/70 mb-2">
+                              Ticket Code:
+                            </p>
                             <code className="font-mono text-lg font-bold text-white bg-white/5 px-3 py-1 rounded">
                               {formatTicketCode(qrTicketCode)}
                             </code>
@@ -617,7 +696,6 @@ export default function Profile() {
                     </div>
                   </DialogContent>
                 </Dialog>
-
               </CardContent>
             </Card>
           </TabsContent>

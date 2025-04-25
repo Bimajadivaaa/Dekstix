@@ -24,9 +24,12 @@ export function EventCard({ event, onSelect }: EventCardProps) {
         <Image
           src={event.image}
           alt={event.title}
-          className="w-[50%] h-full object-cover filter brightness-90 contrast-125"
-          width={200}
-          height={200}
+          className="w-full h-full object-cover filter brightness-90 contrast-125"
+          width={1920}
+          height={1080}
+          quality={100}
+          priority
+          loading="eager"
         />
       </div>
 

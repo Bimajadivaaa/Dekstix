@@ -1,7 +1,19 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Loader2, AlertTriangle } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Loader2, 
+  AlertTriangle, 
+  Search,
+  Ticket,
+  Sparkles,
+  Calendar,
+  TrendingUp,
+  Star,
+  Inbox,
+  Info
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import {
   EventCard,
@@ -12,15 +24,23 @@ import { ticketTiers } from "../../dataTicket/ticketData";
 import { events as fallbackEvents } from "../../dataTicket/ticketData";
 import { Event, TicketTier } from "../../lib/type";
 import { useGetAllEvents } from "@/lib/hooks/read/useGetAllEvents";
-import { useGetTicketPrice } from "@/lib/hooks/read/useGetTicketPrice";
+import { Input } from "@/components/ui/input";
 
 export default function TicketingSystem() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<TicketTier | null>(null);
   const [formattedEvents, setFormattedEvents] = useState<Event[]>([]);
   const [useLocalData, setUseLocalData] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   
   const { allEvents, isFetchingData } = useGetAllEvents();
+
+  // Filter events based on search query
+  const filteredEvents = formattedEvents.filter(event => 
+    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.location.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useEffect(() => {
 
@@ -110,17 +130,19 @@ export default function TicketingSystem() {
 
       <div className="max-w-6xl mx-auto relative z-10">
         <header className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-2 text-white">
+          <h1 className="text-4xl font-bold mb-2 text-white flex items-center justify-center gap-2">
             Purchase Ticket
           </h1>
-          <p className="text-white/70">Secure your spot at the best events</p>
+          <p className="text-white/70 flex items-center justify-center gap-2">
+            <Sparkles className="h-4 w-4" /> Secure your spot at the best events
+          </p>
         </header>
 
         {useLocalData && (
           <div className="bg-amber-500/20 border border-amber-500/50 rounded-md p-3 mb-6 flex items-center">
             <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
-            <p className="text-amber-200 text-sm">
-              Using demo data: Blockchain connection unavailable
+            <p className="text-amber-200 text-sm flex items-center gap-2">
+              <Info className="h-4 w-4" /> Using demo data: Blockchain connection unavailable
             </p>
           </div>
         )}
@@ -163,37 +185,52 @@ export default function TicketingSystem() {
         {!selectedEvent && (
           <div>
             <Tabs defaultValue="upcoming" className="mb-8">
-              <TabsList className="mb-4 bg-white/10 border border-white/20">
-                <TabsTrigger
-                  value="upcoming"
-                  className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:font-semibold"
-                >
-                  Upcoming Events
-                </TabsTrigger>
-                <TabsTrigger
-                  value="trending"
-                  className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:font-semibold"
-                >
-                  Trending
-                </TabsTrigger>
-                <TabsTrigger
-                  value="recommended"
-                  className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:font-semibold"
-                >
-                  Recommended
-                </TabsTrigger>
-              </TabsList>
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-4">
+                <TabsList className="bg-white/10 border border-white/20">
+                  <TabsTrigger
+                    value="upcoming"
+                    className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:font-semibold flex items-center gap-2"
+                  >
+                    <Calendar className="h-4 w-4" /> Upcoming Events
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="trending"
+                    className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:font-semibold flex items-center gap-2"
+                  >
+                    <TrendingUp className="h-4 w-4" /> Trending
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="recommended"
+                    className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:font-semibold flex items-center gap-2"
+                  >
+                    <Star className="h-4 w-4" /> Recommended
+                  </TabsTrigger>
+                </TabsList>
+
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+                  <Input
+                    type="text"
+                    placeholder="Search events..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:ring-white/20"
+                  />
+                </div>
+              </div>
 
               <TabsContent value="upcoming" className="space-y-4">
                 {isFetchingData ? (
                   <div className="flex justify-center items-center h-40">
                     <Loader2 className="h-8 w-8 animate-spin text-white/70" />
-                    <span className="ml-2 text-white/70">Loading events...</span>
+                    <span className="ml-2 text-white/70 flex items-center gap-2">
+                      <Ticket className="h-4 w-4" /> Loading events...
+                    </span>
                   </div>
-                ) : formattedEvents.length > 0 ? (
+                ) : filteredEvents.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {formattedEvents
-                      .filter(event => event.isActive !== false) // Allow undefined isActive to show too
+                    {filteredEvents
+                      .filter(event => event.isActive !== false)
                       .map((event) => (
                         <EventCard
                           key={event.id}
@@ -205,23 +242,33 @@ export default function TicketingSystem() {
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-40 border border-white/20 bg-white/5 rounded-md">
-                    <p className="text-white/50">No events found</p>
+                    <p className="text-white/50 flex items-center gap-2">
+                      {searchQuery ? (
+                        <>
+                          <Search className="h-4 w-4" /> No events found matching your search
+                        </>
+                      ) : (
+                        <>
+                          <Inbox className="h-4 w-4" /> No events found
+                        </>
+                      )}
+                    </p>
                   </div>
                 )}
               </TabsContent>
 
               <TabsContent value="trending">
                 <div className="flex items-center justify-center h-40 border border-white/20 bg-white/5 rounded-md">
-                  <p className="text-white/50">
-                    Trending events will appear here
+                  <p className="text-white/50 flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" /> Trending events will appear here
                   </p>
                 </div>
               </TabsContent>
 
               <TabsContent value="recommended">
                 <div className="flex items-center justify-center h-40 border border-white/20 bg-white/5 rounded-md">
-                  <p className="text-white/50">
-                    Recommended events based on your preferences
+                  <p className="text-white/50 flex items-center gap-2">
+                    <Star className="h-4 w-4" /> Recommended events based on your preferences
                   </p>
                 </div>
               </TabsContent>

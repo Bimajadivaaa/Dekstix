@@ -23,7 +23,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, Ticket, QrCode, User, Home, Sparkles, ChevronRight } from "lucide-react";
+import { Menu, Ticket, QrCode, User, Home, Sparkles, ChevronRight, Wallet } from "lucide-react";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -53,12 +53,18 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="relative h-8 w-8 overflow-hidden rounded-full bg-white/10">
-              <Ticket className="absolute -bottom-1 left-1/2 h-5 w-5 -translate-x-1/2 text-white/90 transform rotate-12" />
+            <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-500 p-0.5">
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+              <div className="h-full w-full bg-black rounded-[7px] flex items-center justify-center">
+                <Ticket className="h-5 w-5 text-white transform -rotate-12 drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]" />
+              </div>
+              <div className="absolute -inset-[1px] bg-white/20 rounded-lg blur-sm"></div>
             </div>
-            <span className="font-bold text-xl text-white">
-              Dekstix
-            </span>
+            <div className="flex flex-col">
+              <span className="font-bold text-xl bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">
+                Dekstix
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -260,15 +266,82 @@ export function Navbar() {
                   </div>
 
                   <div className="mt-6 space-y-3">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start gap-1.5 border-white/20 bg-white/5 text-white"
-                    >
-                      <Sparkles className="h-4 w-4 text-white" />
-                      Create Event
-                    </Button>
                     <div className="pt-2">
-                      <ConnectButton />
+                      <ConnectButton.Custom>
+                        {({
+                          account,
+                          chain,
+                          openAccountModal,
+                          openChainModal,
+                          openConnectModal,
+                          mounted,
+                        }) => {
+                          const ready = mounted;
+                          const connected = ready && account && chain;
+
+                          return (
+                            <div
+                              {...(!ready && {
+                                'aria-hidden': true,
+                                style: {
+                                  opacity: 0,
+                                  pointerEvents: 'none',
+                                  userSelect: 'none',
+                                },
+                              })}
+                              className="space-y-2"
+                            >
+                              {(() => {
+                                if (!connected) {
+                                  return (
+                                    <Button 
+                                      onClick={openConnectModal} 
+                                      className="w-full justify-start gap-1.5 bg-white/10 hover:bg-white/20 text-white"
+                                      size="default"
+                                    >
+                                      <Wallet className="h-4 w-4" />
+                                      Connect Wallet
+                                    </Button>
+                                  );
+                                }
+
+                                return (
+                                  <div className="space-y-2">
+                                    <Button
+                                      onClick={openChainModal}
+                                      variant="outline"
+                                      className="w-full justify-start gap-1.5 border-white/20 bg-white/5 text-white hover:bg-white/10"
+                                    >
+                                      {chain.hasIcon && (
+                                        <div className="h-4 w-4 overflow-hidden rounded-full">
+                                          {chain.iconUrl && (
+                                            <img
+                                              alt={chain.name ?? 'Chain icon'}
+                                              src={chain.iconUrl}
+                                              className="h-full w-full"
+                                            />
+                                          )}
+                                        </div>
+                                      )}
+                                      {chain.name ?? chain.id}
+                                    </Button>
+
+                                    <Button
+                                      onClick={openAccountModal}
+                                      variant="outline"
+                                      className="w-full justify-start gap-1.5 border-white/20 bg-white/5 text-white hover:bg-white/10"
+                                    >
+                                      <User className="h-4 w-4" />
+                                      {account.displayName}
+                                      {account.displayBalance ? ` (${account.displayBalance})` : ''}
+                                    </Button>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          );
+                        }}
+                      </ConnectButton.Custom>
                     </div>
                   </div>
                 </div>
