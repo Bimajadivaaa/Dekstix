@@ -51,6 +51,8 @@ import {
   Download,
   Loader2,
   HelpCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import nftImage from "../../public/Images/nft-ticket.png";
 import { useGetMyTicket } from "@/lib/hooks/read/useGetMyTicket";
@@ -77,6 +79,8 @@ export default function Profile() {
   const [selectedTicketForQR, setSelectedTicketForQR] = useState<bigint | null>(
     null
   );
+  const [visibleTicketCodes, setVisibleTicketCodes] = useState<{ [key: string]: boolean }>({});
+  const [nftMetadata, setNftMetadata] = useState<{ [key: string]: any }>({});
 
   // Use the hooks to get ticket and purchase history data
   const {
@@ -108,6 +112,43 @@ export default function Profile() {
       refetchHistory();
     }
   }, [mounted, address, refetchTickets, refetchHistory]);
+
+  // Function to fetch NFT metadata from IPFS
+  const fetchNFTMetadata = async (tokenURI: string, tokenId: string) => {
+    try {
+      // Convert IPFS URI to HTTP URL
+      const ipfsUrl = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/");
+      const response = await fetch(ipfsUrl);
+      const metadata = await response.json();
+      
+      setNftMetadata(prev => ({
+        ...prev,
+        [tokenId]: metadata
+      }));
+    } catch (error) {
+      console.error("Error fetching NFT metadata:", error);
+    }
+  };
+
+  // Fetch metadata for each ticket
+  useEffect(() => {
+    if (tickets.length > 0) {
+      tickets.forEach((ticket) => {
+        if (ticket.tokenURI) {
+          fetchNFTMetadata(ticket.tokenURI, ticket.tokenId.toString());
+        }
+      });
+    }
+  }, [tickets]);
+
+  // Function to get image URL
+  const getImageUrl = (ticket: any) => {
+    const metadata = nftMetadata[ticket.tokenId.toString()];
+    if (metadata?.image) {
+      return metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/");
+    }
+    return nftImage.src;
+  };
 
   const handleCopyAddress = () => {
     if (address) {
@@ -142,7 +183,7 @@ export default function Profile() {
   };
 
   // Map ticket types to their names
-  const TICKET_TYPES = ["STANDARD", "PREMIUM", "VIP"];
+  const TICKET_TYPES = ["Standard Ticket", "Premium Ticket", "VIP Ticket"];
 
   // Get ticket status for each ticket
   const getTicketValidationStatus = (tokenId: bigint) => {
@@ -154,6 +195,26 @@ export default function Profile() {
   const formatTicketCode = (code: string | undefined) => {
     if (!code) return "No code generated";
     return code;
+  };
+
+  // Function to toggle ticket code visibility
+  const toggleTicketCodeVisibility = (tokenId: string) => {
+    setVisibleTicketCodes(prev => ({
+      ...prev,
+      [tokenId]: !prev[tokenId]
+    }));
+  };
+
+  // Function to check if ticket code should be shown
+  const shouldShowTicketCode = (purchase: any) => {
+    if (!purchase) return false;
+    return purchase.isUsed || purchase.isExpired;
+  };
+
+  // Function to check if ticket code exists
+  const hasTicketCode = (tokenId: bigint) => {
+    const purchase = purchaseHistory.find(p => p.tokenId === tokenId);
+    return purchase?.ticketCode ? true : false;
   };
 
   return (
@@ -336,11 +397,15 @@ export default function Profile() {
                             <div className="relative">
                               <div className="h-36 bg-white/5 border border-white/10 flex justify-center items-center">
                                 <Image
-                                  src={nftImage}
+                                  src={getImageUrl(ticket)}
                                   alt={ticket.eventName}
                                   width={100}
                                   height={100}
-                                  className="object-contain z-10 transform hover:scale-105 transition-transform filter brightness-90"
+                                  className="w-[30%] h-full object-contain z-10 transform hover:scale-105 transition-transform filter brightness-90"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = nftImage.src;
+                                  }}
                                 />
                               </div>
 
@@ -396,31 +461,27 @@ export default function Profile() {
                               {status === "past" ? (
                                 <Button
                                   className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                                  onClick={() =>
-                                    setSelectedTicketForQR(ticket.tokenId)
-                                  }
+                                  onClick={() => setSelectedTicketForQR(ticket.tokenId)}
+                                  disabled={!hasTicketCode(ticket.tokenId)}
                                 >
                                   <QrCode className="h-4 w-4 mr-2" />
-                                  Show QR Code
+                                  {hasTicketCode(ticket.tokenId) ? "Show QR Code" : "Code Not Generated"}
                                 </Button>
                               ) : getTicketValidationStatus(ticket.tokenId) ? (
                                 <Button
                                   className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                                  onClick={() =>
-                                    setSelectedTicketForQR(ticket.tokenId)
-                                  }
+                                  onClick={() => setSelectedTicketForQR(ticket.tokenId)}
+                                  disabled={!hasTicketCode(ticket.tokenId)}
                                 >
                                   <QrCode className="h-4 w-4 mr-2" />
-                                  Show QR Code
+                                  {hasTicketCode(ticket.tokenId) ? "Show QR Code" : "Code Not Generated"}
                                 </Button>
                               ) : (
                                 <Button
                                   className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
                                   asChild
                                 >
-                                  <Link
-                                    href={`/validation?tokenId=${ticket.tokenId}`}
-                                  >
+                                  <Link href={`/validation?tokenId=${ticket.tokenId}`}>
                                     <QrCode className="h-4 w-4 mr-2" />
                                     Validate Ticket
                                   </Link>
@@ -570,7 +631,33 @@ export default function Profile() {
                             {formatDate(Number(purchase.eventDate))}
                           </TableCell>
                           <TableCell className="font-mono text-white/70">
-                            {purchase.ticketCode || "Not Generated"}
+                            <div className="flex items-center gap-2">
+                              {!shouldShowTicketCode(purchase) ? (
+                                <span className="text-white/50">Not generated yet</span>
+                              ) : purchase.ticketCode ? (
+                                <>
+                                  <span>
+                                    {visibleTicketCodes[purchase.tokenId.toString()] 
+                                      ? purchase.ticketCode 
+                                      : "••••••••••••"}
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-5 w-5 text-white/50 hover:text-white hover:bg-white/10"
+                                    onClick={() => toggleTicketCodeVisibility(purchase.tokenId.toString())}
+                                  >
+                                    {visibleTicketCodes[purchase.tokenId.toString()] ? (
+                                      <EyeOff className="h-3 w-3" />
+                                    ) : (
+                                      <Eye className="h-3 w-3" />
+                                    )}
+                                  </Button>
+                                </>
+                              ) : (
+                                "Not Generated"
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="text-white/70">
                             {TICKET_TYPES[purchase.ticketType] || "Standard"}
@@ -611,25 +698,25 @@ export default function Profile() {
                                 <DropdownMenuItem
                                   className="text-white/70 hover:bg-white/10 cursor-pointer"
                                   onClick={() => {
-                                    if (purchase.ticketCode) {
-                                      navigator.clipboard.writeText(
-                                        purchase.ticketCode
-                                      );
-                                      toast.success(
-                                        "Ticket code copied to clipboard"
-                                      );
+                                    if (purchase.ticketCode && shouldShowTicketCode(purchase)) {
+                                      navigator.clipboard.writeText(purchase.ticketCode);
+                                      toast.success("Ticket code copied to clipboard");
+                                      // Show the code briefly when copying
+                                      toggleTicketCodeVisibility(purchase.tokenId.toString());
+                                      setTimeout(() => {
+                                        toggleTicketCodeVisibility(purchase.tokenId.toString());
+                                      }, 2000);
                                     }
                                   }}
-                                  disabled={!purchase.ticketCode}
+                                  disabled={!purchase.ticketCode || !shouldShowTicketCode(purchase)}
                                 >
                                   <Copy className="h-4 w-4 mr-2" />
                                   <span>Copy Ticket Code</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   className="text-white/70 hover:bg-white/10 cursor-pointer"
-                                  onClick={() =>
-                                    setSelectedTicketForQR(purchase.tokenId)
-                                  }
+                                  onClick={() => setSelectedTicketForQR(purchase.tokenId)}
+                                  disabled={!shouldShowTicketCode(purchase)}
                                 >
                                   <QrCode className="h-4 w-4 mr-2" />
                                   <span>Show QR Code</span>
@@ -678,7 +765,11 @@ export default function Profile() {
                       <DialogTitle>Ticket QR Code</DialogTitle>
                     </DialogHeader>
                     <div className="flex flex-col items-center gap-4 p-4">
-                      {isLoadingQRCode ? (
+                      {!shouldShowTicketCode(purchaseHistory.find(p => p.tokenId === selectedTicketForQR)) ? (
+                        <div className="text-center">
+                          <span className="text-white/50">Ticket Not generated yet</span>
+                        </div>
+                      ) : isLoadingQRCode ? (
                         <Loader2 className="h-8 w-8 animate-spin text-white/70" />
                       ) : (
                         <>

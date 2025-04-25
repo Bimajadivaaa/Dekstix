@@ -15,12 +15,12 @@ export default function PurchaseHistory() {
   const { address } = useAccount();
 
   const allPurchaseHistory = [
-    { no: 1, accessCode: "QKELS", purchaseDate: "01 - 01 - 2025", status: "Not validated yet" },
+    { no: 1, accessCode: "QKELS", purchaseDate: "01 - 01 - 2025", status: "Not generated yet" },
     { no: 2, accessCode: "ABCDE", purchaseDate: "01 - 01 - 2025", status: "Validated" },
     { no: 3, accessCode: "FGHIJ", purchaseDate: "01 - 01 - 2025", status: "Validated" },
     { no: 4, accessCode: "KLMNO", purchaseDate: "01 - 01 - 2025", status: "Validated" },
     { no: 5, accessCode: "PQRST", purchaseDate: "01 - 01 - 2025", status: "Validated" },
-    { no: 6, accessCode: "UVWXY", purchaseDate: "02 - 01 - 2025", status: "Not validated yet" },
+    { no: 6, accessCode: "UVWXY", purchaseDate: "02 - 01 - 2025", status: "Not generated yet" },
     { no: 7, accessCode: "ZABCD", purchaseDate: "02 - 01 - 2025", status: "Validated" },
     { no: 8, accessCode: "EFGHI", purchaseDate: "02 - 01 - 2025", status: "Validated" },
     { no: 9, accessCode: "JKLMN", purchaseDate: "02 - 01 - 2025", status: "Validated" },

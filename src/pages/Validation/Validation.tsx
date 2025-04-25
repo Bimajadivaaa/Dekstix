@@ -22,6 +22,8 @@ import {
   ChevronDown,
   Copy,
   QrCode,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -43,7 +45,7 @@ import { useGetStatusNFT } from "@/lib/hooks/read/useGetStatusNFT";
 import { cn } from "@/lib/utils";
 import { QRCode } from "@/components/ui/qr-code";
 import { motion } from "framer-motion";
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from "next/navigation";
 
 // Define the ticket type based on the contract's TicketWithNFT struct
 type Ticket = {
@@ -62,7 +64,7 @@ type NFTMetadata = {
 };
 
 // Map for ticket types
-const TICKET_TYPES = ["STANDARD", "PREMIUM", "VIP"];
+const TICKET_TYPES = ["Standard Ticket", "Premium Ticket", "VIP Ticket"];
 
 export default function EnhancedValidation() {
   // Add mounted state to handle hydration
@@ -74,6 +76,7 @@ export default function EnhancedValidation() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [nftMetadata, setNftMetadata] = useState<NFTMetadata | null>(null);
   const [showQRCode, setShowQRCode] = useState(false);
+  const [showTicketCode, setShowTicketCode] = useState(false);
   const searchParams = useSearchParams();
 
   // Use the get ticket code hook with proper conversion
@@ -170,34 +173,37 @@ export default function EnhancedValidation() {
 
     let progressInterval: NodeJS.Timeout;
 
-    if (isGenerating || isConfirming) {
-      // Start or continue progress animation
+    if (isConfirming) {
+      // Start progress animation only after transaction is confirmed
       setIsValidating(true);
+      setProgress(0); // Reset progress when confirmation starts
 
-      if (isGenerating && progress < 50) {
-        progressInterval = setInterval(() => {
-          setProgress((prev) => Math.min(prev + 2, 50));
-        }, 150);
-      } else if (isConfirming && progress >= 50 && progress < 95) {
-        progressInterval = setInterval(() => {
-          setProgress((prev) => Math.min(prev + 2, 95));
-        }, 150);
-      }
+      progressInterval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev < 30) return prev + 2;
+          if (prev < 60) return prev + 1;
+          return Math.min(prev + 0.5, 95);
+        });
+      }, 100);
     }
 
     // Clean up interval
     return () => {
       if (progressInterval) clearInterval(progressInterval);
     };
-  }, [mounted, isGenerating, isConfirming, progress]);
+  }, [mounted, isConfirming]);
 
   // Effect to handle successful ticket code generation
   useEffect(() => {
     if (!mounted) return;
 
     if (isGenerateSuccess && txHash) {
-      // Finalize the progress animation
+      // Complete the progress animation
       setProgress(100);
+      // Show QR code automatically
+      setShowQRCode(true);
+      // Show ticket code automatically
+      setShowTicketCode(true);
 
       // Wait a bit for the transaction to be mined and then fetch the code
       setTimeout(async () => {
@@ -206,7 +212,7 @@ export default function EnhancedValidation() {
 
         // Refetch the ticket code
         await refetchCode();
-      }, 2000); // Increased timeout to ensure transaction is mined
+      }, 2000);
     }
   }, [mounted, isGenerateSuccess, txHash, refetchCode]);
 
@@ -244,11 +250,8 @@ export default function EnhancedValidation() {
   const handleValidate = async () => {
     if (!mounted || !selectedTicket) return;
 
-    setIsValidating(true);
-    setProgress(0);
-
     try {
-      // Call the function from our hook
+      // Call the function from our hook without setting loading state
       await generateTicketCode(Number(selectedTicket.tokenId));
     } catch (error) {
       console.error("Error initiating ticket validation:", error);
@@ -283,7 +286,7 @@ export default function EnhancedValidation() {
     }
     if (isUsed) {
       return {
-        message: "Ticket Used",
+        message: "Ticket code generated",
         className: "bg-green-500/20 text-green-400 border-green-500/20",
       };
     }
@@ -304,7 +307,7 @@ export default function EnhancedValidation() {
   // Function to get validation button text
   const getValidationButtonText = () => {
     if (isUsed) return "Ticket Already Used";
-    return "Validate Ticket";
+    return "Generate Ticket Code";
   };
 
   // Function to format ticket code
@@ -315,10 +318,15 @@ export default function EnhancedValidation() {
 
   // Set QR code visibility based on URL parameter
   useEffect(() => {
-    if (mounted && searchParams.get('showQR') === 'true') {
+    if (mounted && searchParams.get("showQR") === "true") {
       setShowQRCode(true);
     }
   }, [mounted, searchParams]);
+
+  // Function to check if ticket code should be shown
+  const shouldShowTicketCode = () => {
+    return isUsed || validationComplete || fetchedTicketCode;
+  };
 
   // Return null or loading state during server-side rendering
   if (!mounted) {
@@ -446,14 +454,57 @@ export default function EnhancedValidation() {
                   )}
 
                   {validationComplete && (
-                    <div className="absolute inset-0 bg-green-500/20 backdrop-blur-sm flex items-center justify-center">
+                    <div className="absolute inset-0 bg-green-500/20 backdrop-blur-sm flex flex-col items-center justify-center gap-4 p-4">
                       <div className="bg-white/10 rounded-full p-2 shadow-lg">
                         <CheckCircle2 className="h-10 w-10 text-green-400" />
+                      </div>
+                      <div className="flex items-center justify-center text-green-500
+                      text-center border border-green-400/20 rounded-xl bg-transparent p-2 text-sm font-bold">Success Generated Ticket Code</div>
+                    </div>
+                  )}
+
+                  {isProcessing && (
+                    <div className="absolute inset-0 bg-emerald-900/30 backdrop-blur-sm flex flex-col items-center justify-center p-4">
+                      <div className="w-full space-y-4">
+                        <div className="relative">
+                          <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-green-400 rounded-full transition-all duration-300 ease-out"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <div className="absolute -bottom-6 left-0 w-full">
+                            <div className="flex justify-between text-xs text-white/70">
+                              <span>Validating...</span>
+                              <span>{Math.round(progress)}%</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {progress > 50 && fetchedTicketCode && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="pt-4 space-y-2"
+                          >
+                            <div className="text-center">
+                              <p className="text-sm text-white/90 mb-1">
+                                Your Ticket Code:
+                              </p>
+                              <code className="font-mono text-sm font-bold text-white bg-white/10 px-3 py-1 rounded-lg">
+                                {fetchedTicketCode}
+                              </code>
+                            </div>
+                          </motion.div>
+                        )}
                       </div>
                     </div>
                   )}
                 </div>
               </div>
+
+              {/* Move QR Code display here */}
+           
 
               {isConnected &&
                 hasNFTs &&
@@ -481,13 +532,15 @@ export default function EnhancedValidation() {
                               >
                                 <div className="flex items-center gap-2">
                                   <Ticket className="h-4 w-4" />
-                                  <span>Ticket #{Number(ticket.tokenId)}</span>
+                                  <span>Ticket {Number(ticket.tokenId)}</span>
                                   <Badge
                                     variant="outline"
-                                    className="ml-auto bg-white/10 border-white/20 text-white/80"
+                                    className="ml-auto bg-green-900 border-white/20 text-white/80"
                                   >
-                                    {TICKET_TYPES[ticket.ticketType] ||
-                                      "Standard"}
+                                    <span className="text-xs font-medium text-white">
+                                      {TICKET_TYPES[ticket.ticketType] ||
+                                        "Standard Ticket"}
+                                    </span>
                                   </Badge>
                                 </div>
                               </SelectItem>
@@ -523,157 +576,115 @@ export default function EnhancedValidation() {
                         <p className="text-sm text-white/70">
                           Token ID: #{Number(selectedTicket.tokenId)}
                         </p>
-                        <div className="text-sm text-white/70 mt-1 flex items-center gap-2 justify-center">
-                          Ticket Code:{" "}
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono">
-                              {isLoadingCode ? (
-                                <Loader2 className="h-3 w-3 animate-spin inline" />
-                              ) : (
-                                <span className="font-bold">
-                                  {formatTicketCode(fetchedTicketCode)}
+                        <div className="text-sm text-white/70 mt-1">
+                          <div className="flex items-center gap-2 justify-center">
+                            <span>Ticket Code:</span>
+                            {!shouldShowTicketCode() ? (
+                              <span className="text-white/50">
+                                Not generated yet
+                              </span>
+                            ) : isLoadingCode ? (
+                              <Loader2 className="h-3 w-3 animate-spin inline" />
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono">
+                                  {showTicketCode ? (
+                                    <span className="font-bold">
+                                      {formatTicketCode(fetchedTicketCode)}
+                                    </span>
+                                  ) : (
+                                    "••••••••••••"
+                                  )}
                                 </span>
-                              )}
-                            </span>
-                            {fetchedTicketCode && !isLoadingCode && (
-                              <>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5 text-white/50 hover:text-white hover:bg-white/10"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(
-                                      fetchedTicketCode
-                                    );
-                                    toast.success(
-                                      "Ticket code copied to clipboard"
-                                    );
-                                  }}
-                                >
-                                  <Copy className="h-3 w-3" />
-                                </Button>
-                              </>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-5 w-5 text-white/50 hover:text-white hover:bg-white/10"
+                                    onClick={() =>
+                                      setShowTicketCode(!showTicketCode)
+                                    }
+                                  >
+                                    {showTicketCode ? (
+                                      <EyeOff className="h-3 w-3" />
+                                    ) : (
+                                      <Eye className="h-3 w-3" />
+                                    )}
+                                  </Button>
+                                  {showTicketCode && fetchedTicketCode && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5 text-white/50 hover:text-white hover:bg-white/10"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(
+                                          fetchedTicketCode
+                                        );
+                                        toast.success(
+                                          "Ticket code copied to clipboard"
+                                        );
+                                      }}
+                                    >
+                                      <Copy className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
                             )}
                           </div>
-                          
                         </div>
+                        {shouldShowTicketCode() && (
+                <>
+                  <div className="flex items-center gap-2 justify-center">
+                    <Button
+                      variant="ghost"
+                      className="h-7 px-2 text-white/50 hover:text-white hover:bg-white/10 text-xs flex items-center gap-1"
+                      onClick={() => setShowQRCode(!showQRCode)}
+                    >
+                      <QrCode className="h-3 w-3" />
+                      {showQRCode ? "Hide QR Code" : "Show QR Code"}
+                    </Button>
+                  </div>
 
-                        <div className="flex items-center gap-2 justify-center">
-                            <Button
-                              variant="ghost"
-                              className="h-7 px-2 text-white/50 hover:text-white hover:bg-white/10 text-xs flex items-center gap-1"
-                              onClick={() => setShowQRCode(!showQRCode)}
-                            >
-                              <QrCode className="h-3 w-3" />
-                              {showQRCode ? "Hide QR Code" : "Show QR Code"}
-                            </Button>
-                          </div>
-
-                        {/* QR Code */}
-                        {fetchedTicketCode && !isLoadingCode && showQRCode && (
-                          <motion.div
-                            className="mt-4"
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <QRCode value={fetchedTicketCode} />
-                          </motion.div>
-                        )}
+                  {showQRCode && fetchedTicketCode && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6 flex flex-col items-center gap-4"
+                    >
+                      <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <QRCode value={fetchedTicketCode} />
+                      </div>
+                      {fetchedTicketCode && (
+                        <div className="text-center">
+                          <p className="text-sm text-white/90 font-medium mb-2">
+                            Ticket Code:
+                          </p>
+                          <code className="font-mono text-sm font-bold text-white bg-white/10 px-3 py-1 rounded-lg">
+                            {fetchedTicketCode}
+                          </code>
+                        </div>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border-white/10"
+                        onClick={() => {
+                          navigator.clipboard.writeText(fetchedTicketCode);
+                          toast.success("Ticket code copied to clipboard");
+                        }}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Ticket Code
+                      </Button>
+                    </motion.div>
+                  )}
+                </>
+              )}
                       </div>
                     )}
                   </div>
                 )}
-
-              {isValidating && (
-                <div className="space-y-3">
-                  <div className="text-center">
-                    <Loader2 className="h-8 w-8 text-white/70 animate-spin mx-auto mb-2" />
-                    <h3 className="font-medium text-white">
-                      Validating your ticket
-                    </h3>
-                    <p className="text-sm text-white/70">
-                      {isGenerating
-                        ? "Sending transaction to blockchain..."
-                        : isConfirming
-                        ? "Waiting for confirmation..."
-                        : "Please wait while we verify your NFT"}
-                    </p>
-                  </div>
-
-                  <Progress value={progress} className="h-2 bg-white/10" />
-
-                  <div className="text-xs text-white/50 flex justify-between">
-                    <span>
-                      {isGenerating
-                        ? "Generating ticket code"
-                        : isConfirming
-                        ? "Confirming transaction"
-                        : "Processing"}
-                    </span>
-                    <span>{progress}%</span>
-                  </div>
-                </div>
-              )}
-
-              {validationComplete && (
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <h3 className="font-medium text-white mb-1">
-                      Validation Complete
-                    </h3>
-                    <p className="text-sm text-white/70">
-                      Your ticket has been successfully validated
-                    </p>
-                    <Badge
-                      variant="outline"
-                      className={getStatusDisplay().className}
-                      style={{ marginTop: "0.5rem" }}
-                    >
-                      {isLoadingStatus && (
-                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                      )}
-                      {getStatusDisplay().message}
-                    </Badge>
-                  </div>
-
-                  <div className="bg-white/5 p-4 rounded-lg border border-white/20">
-                    <p className="text-sm text-white/70 mb-1">
-                      Your Access Code:
-                    </p>
-                    <div className="flex items-center justify-between gap-2">
-                      <code className="font-mono text-xl font-bold text-white tracking-wide">
-                        {isLoadingCode ? (
-                          <Loader2 className="h-6 w-6 animate-spin" />
-                        ) : fetchedTicketCode ? (
-                          fetchedTicketCode
-                        ) : (
-                          "No code available"
-                        )}
-                      </code>
-                      {fetchedTicketCode && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-xs bg-white/10 text-white border-white/20 hover:bg-white/20"
-                          onClick={() => {
-                            navigator.clipboard.writeText(fetchedTicketCode);
-                            toast.success("Code copied to clipboard");
-                          }}
-                        >
-                          Copy
-                        </Button>
-                      )}
-                    </div>
-                    {ticketCodeError && (
-                      <p className="text-sm text-red-400 mt-2">
-                        Error fetching ticket code. Please try again.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
             </CardContent>
 
             <Separator className="bg-white/10 mb-4" />
@@ -716,7 +727,6 @@ export default function EnhancedValidation() {
                                 </Button>
                               );
                             }
-
                             return null;
                           })()}
                         </div>
@@ -741,17 +751,16 @@ export default function EnhancedValidation() {
                   No NFT tickets found
                 </Button>
               ) : isProcessing ? (
+              <div className="flex items-center justify-center flex-col">
+              <p className="text-white/70 text-sm mb-2">Wait for your code ticket is generating</p>
                 <Button
                   disabled
                   className="w-full max-w-xs bg-white/10 text-white"
                 >
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isGenerating
-                    ? "Generating Code..."
-                    : isConfirming
-                    ? "Confirming..."
-                    : "Validating..."}
+                  {isConfirming ? "Confirming..." : "Generating..."}
                 </Button>
+              </div>
               ) : (
                 !validationComplete && (
                   <Button
