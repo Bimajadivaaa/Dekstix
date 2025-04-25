@@ -46,6 +46,7 @@ import { cn } from "@/lib/utils";
 import { QRCode } from "@/components/ui/qr-code";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
+import { useDisconnect } from "wagmi";
 
 // Define the ticket type based on the contract's TicketWithNFT struct
 type Ticket = {
@@ -77,7 +78,9 @@ export default function EnhancedValidation() {
   const [nftMetadata, setNftMetadata] = useState<NFTMetadata | null>(null);
   const [showQRCode, setShowQRCode] = useState(false);
   const [showTicketCode, setShowTicketCode] = useState(false);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const searchParams = useSearchParams();
+  const { disconnect } = useDisconnect();
 
   // Use the get ticket code hook with proper conversion
   const {
@@ -113,6 +116,8 @@ export default function EnhancedValidation() {
     error: generateError,
     txHash,
   } = useGenerateTicketCode();
+
+  console.log("txHash", txHash);
 
   // Add status check hook
   const {
@@ -197,21 +202,20 @@ export default function EnhancedValidation() {
   useEffect(() => {
     if (!mounted) return;
 
-    if (isGenerateSuccess && txHash) {
-      // Complete the progress animation
+    if (isGenerateSuccess) {
+      console.log("Generate Success, Hash:", txHash);
       setProgress(100);
-      // Show QR code automatically
-      setShowQRCode(true);
-      // Show ticket code automatically
-      setShowTicketCode(true);
+      setIsLoadingDetails(true);
 
       // Wait a bit for the transaction to be mined and then fetch the code
       setTimeout(async () => {
         setIsValidating(false);
         setValidationComplete(true);
-
-        // Refetch the ticket code
         await refetchCode();
+        // Show QR code and ticket code after loading
+        setShowQRCode(true);
+        setShowTicketCode(true);
+        setIsLoadingDetails(false);
       }, 2000);
     }
   }, [mounted, isGenerateSuccess, txHash, refetchCode]);
@@ -291,7 +295,7 @@ export default function EnhancedValidation() {
       };
     }
     return {
-      message: "Ticket Valid",
+      message: "Valid Ticket",
       className: "bg-white/10 text-white/70 border-white/20",
     };
   };
@@ -359,24 +363,24 @@ export default function EnhancedValidation() {
           </Badge>
 
           <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white">
-            Validate your NFT Ticket
+            Generate your NFT Ticket Code
           </h1>
 
           <p className="text-lg text-white/70 max-w-2xl">
-            Verify your <span className="text-white/90 font-semibold">NFT</span>{" "}
-            ticket to receive a unique access code for event entry
+            Generate your{" "}
+            <span className="text-white/90 font-semibold">NFT</span> ticket to
+            receive a unique access code for event entry
           </p>
         </div>
 
         <div className="mx-auto max-w-xl">
           <Card className="bg-[#1a1a1a] border border-white/10">
-            <CardHeader className="text-center pb-2">
+            <CardHeader className="text-center pb-6">
               <CardTitle className="text-xl text-white">
-                Wallet Verification
+                Wallet Detection
               </CardTitle>
               <CardDescription className="text-white/70">
-                Connect your wallet to automatically detect and validate your
-                NFT tickets
+                Connect your wallet to automatically detect your NFT tickets
               </CardDescription>
             </CardHeader>
 
@@ -389,6 +393,14 @@ export default function EnhancedValidation() {
                       Connected: {address?.substring(0, 6)}...
                       {address?.substring(address.length - 4)}
                     </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2 h-7 px-2 text-red-400 hover:text-red-500 hover:bg-red-500/10 bg-transparent border border-red-400/20 rounded-md"
+                      onClick={() => disconnect()}
+                    >
+                      Disconnect
+                    </Button>
                   </div>
                   <Badge
                     variant="outline"
@@ -458,10 +470,13 @@ export default function EnhancedValidation() {
                       <div className="bg-white/10 rounded-full p-2 shadow-lg">
                         <CheckCircle2 className="h-10 w-10 text-green-400" />
                       </div>
-                      <div className="flex items-center justify-center text-green-500
-                      text-center border border-green-400/20 rounded-xl bg-transparent p-2 text-sm font-bold">Success Generated Ticket Code</div>
-                    </div>                    
-
+                      <div
+                        className="flex items-center justify-center text-white bg-green-500/10
+                      text-center border border-green-400/20 rounded-xl  p-2 text-sm font-bold"
+                      >
+                        Success Generated Ticket Code
+                      </div>
+                    </div>
                   )}
 
                   {isProcessing && (
@@ -476,7 +491,7 @@ export default function EnhancedValidation() {
                           </div>
                           <div className="absolute -bottom-6 left-0 w-full">
                             <div className="flex justify-between text-xs text-white/70">
-                              <span>Validating...</span>
+                              <span>Generating...</span>
                               <span>{Math.round(progress)}%</span>
                             </div>
                           </div>
@@ -504,6 +519,17 @@ export default function EnhancedValidation() {
                 </div>
               </div>
 
+              {selectedTicket && (
+                <div className="flex items-center justify-center gap-2">
+                  <Ticket className="h-5 w-5 mr-1 text-white" />
+                  <p className="text-sm text-white/80 text-center font-bold">
+                    {TICKET_TYPES[selectedTicket.ticketType] ||
+                      "Standard Ticket"}{" "}
+                    NFT
+                  </p>
+                </div>
+              )}
+
               {/* Add QR Code and Ticket Code section below NFT image */}
               {validationComplete && fetchedTicketCode && (
                 <motion.div
@@ -512,28 +538,83 @@ export default function EnhancedValidation() {
                   className="mt-8 space-y-6"
                 >
                   <div className="bg-white/5 rounded-xl border border-white/10 p-3 flex flex-col items-center gap-4">
-                    <div className="bg-white/5 rounded-lg p-4">
-                      <QRCode value={fetchedTicketCode} />
-                    </div>
-                    <div className="text-center space-y-1">
-                      <p className="text-sm text-white/70 p-2">Your Ticket Code:</p>
-                      <div className="flex items-center gap-2 justify-center">
-                        <code className="font-mono text-base font-bold text-white bg-white/10 px-2 py-2 rounded-lg">
-                          {fetchedTicketCode}
-                        </code>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 text-white/50 hover:text-white hover:bg-white/10"
-                          onClick={() => {
-                            navigator.clipboard.writeText(fetchedTicketCode);
-                            toast.success("Ticket code copied to clipboard");
-                          }}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
+                    {isLoadingDetails ? (
+                      <div className="flex flex-col items-center gap-3 py-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-white/50" />
+                        <p className="text-sm text-white/70">Loading ticket details...</p>
                       </div>
-                    </div>
+                    ) : (
+                      <>
+                        <div className="bg-white/5 rounded-lg p-4">
+                          <QRCode value={fetchedTicketCode} />
+                        </div>
+                        <div className="text-center space-y-1">
+                          <p className="text-sm text-white/70 p-2">
+                            Your Ticket Code:
+                          </p>
+                          <div className="flex items-center gap-2 justify-center">
+                            <code className="font-mono text-base font-bold text-white bg-white/10 px-2 py-2 rounded-lg">
+                              {fetchedTicketCode}
+                            </code>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 text-white/50 hover:text-white hover:bg-white/10"
+                              onClick={() => {
+                                navigator.clipboard.writeText(fetchedTicketCode);
+                                toast.success("Ticket code copied to clipboard");
+                              }}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {txHash && (
+                            <div className="mt-6 text-sm border-t border-white/10 pt-4">
+                              <p className="text-white/70 mb-2">Transaction Details:</p>
+                              <div className="flex flex-col items-center gap-2">
+                                <div className="flex items-center justify-center gap-2">
+                                  <code className="font-mono text-xs text-white/90 bg-white/10 px-2 py-1 rounded">
+                                    {txHash.slice(0, 10)}...{txHash.slice(-8)}
+                                  </code>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-white/50 hover:text-white hover:bg-white/10"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(txHash);
+                                      toast.success("Transaction hash copied to clipboard");
+                                    }}
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                                <a
+                                  href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors mt-2"
+                                >
+                                  View on Sepolia Explorer
+                                  <svg
+                                    className="h-3 w-3"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                    />
+                                  </svg>
+                                </a>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                   <div className="flex justify-center w-full">
                     <Button
@@ -578,7 +659,9 @@ export default function EnhancedValidation() {
                               >
                                 <div className="flex items-center gap-2">
                                   <Ticket className="h-4 w-4 text-white" />
-                                  <span className="text-sm font-mono font-medium text-white">Ticket {Number(ticket.tokenId)}</span>
+                                  <span className="text-sm font-mono font-medium text-white">
+                                    Ticket {Number(ticket.tokenId)}
+                                  </span>
                                   <Badge
                                     variant="outline"
                                     className="ml-auto bg-white/20 border-white/20 text-white/80 hover:bg-transparent"
@@ -680,53 +763,57 @@ export default function EnhancedValidation() {
                           </div>
                         </div>
                         {shouldShowTicketCode() && (
-                <>
-                  <div className="flex items-center gap-2 justify-center">
-                    <Button
-                      variant="ghost"
-                      className="h-7 px-2 text-white/50 hover:text-white hover:bg-white/10 text-xs flex items-center gap-1"
-                      onClick={() => setShowQRCode(!showQRCode)}
-                    >
-                      <QrCode className="h-3 w-3" />
-                      {showQRCode ? "Hide QR Code" : "Show QR Code"}
-                    </Button>
-                  </div>
+                          <>
+                            <div className="flex items-center gap-2 justify-center">
+                              <Button
+                                variant="ghost"
+                                className="h-7 px-2 text-white/50 hover:text-white hover:bg-white/10 text-xs flex items-center gap-1"
+                                onClick={() => setShowQRCode(!showQRCode)}
+                              >
+                                <QrCode className="h-3 w-3" />
+                                {showQRCode ? "Hide QR Code" : "Show QR Code"}
+                              </Button>
+                            </div>
 
-                  {showQRCode && fetchedTicketCode && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-6 flex flex-col items-center gap-4"
-                    >
-                      <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                        <QRCode value={fetchedTicketCode} />
-                      </div>
-                      {fetchedTicketCode && (
-                        <div className="text-center">
-                          <p className="text-sm text-white/90 font-medium mb-2">
-                            Ticket Code:
-                          </p>
-                          <code className="font-mono text-sm font-bold text-white bg-white/10 px-3 py-1 rounded-lg">
-                            {fetchedTicketCode}
-                          </code>
-                        </div>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border-white/10"
-                        onClick={() => {
-                          navigator.clipboard.writeText(fetchedTicketCode);
-                          toast.success("Ticket code copied to clipboard");
-                        }}
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy Ticket Code
-                      </Button>
-                    </motion.div>
-                  )}
-                </>
-              )}
+                            {showQRCode && fetchedTicketCode && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-6 flex flex-col items-center gap-4"
+                              >
+                                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                                  <QRCode value={fetchedTicketCode} />
+                                </div>
+                                {fetchedTicketCode && (
+                                  <div className="text-center">
+                                    <p className="text-sm text-white/90 font-medium mb-2">
+                                      Ticket Code:
+                                    </p>
+                                    <code className="font-mono text-sm font-bold text-white bg-white/10 px-3 py-1 rounded-lg">
+                                      {fetchedTicketCode}
+                                    </code>
+                                  </div>
+                                )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border-white/10"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(
+                                      fetchedTicketCode
+                                    );
+                                    toast.success(
+                                      "Ticket code copied to clipboard"
+                                    );
+                                  }}
+                                >
+                                  <Copy className="h-4 w-4 mr-2" />
+                                  Copy Ticket Code
+                                </Button>
+                              </motion.div>
+                            )}
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -742,8 +829,6 @@ export default function EnhancedValidation() {
                     {({
                       account,
                       chain,
-                      openAccountModal,
-                      openChainModal,
                       openConnectModal,
                       mounted: rainbowKitMounted,
                     }) => {
@@ -779,6 +864,9 @@ export default function EnhancedValidation() {
                       );
                     }}
                   </ConnectButton.Custom>
+                  <p className="text-xs text-white/70 text-center mt-5">
+                    Please connect your wallet to generate your ticket code!
+                  </p>
                 </div>
               ) : isLoadingTickets ? (
                 <Button
@@ -797,16 +885,18 @@ export default function EnhancedValidation() {
                   No NFT tickets found
                 </Button>
               ) : isProcessing ? (
-              <div className="flex items-center justify-center flex-col">
-              <p className="text-white/70 text-sm mb-2">Please Wait for your code ticket is generating...</p>
-                <Button
-                  disabled
-                  className="w-full max-w-xs bg-white/10 text-white"
-                >
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isConfirming ? "Confirming..." : "Generating..."}
-                </Button>
-              </div>
+                <div className="flex items-center justify-center flex-col">
+                  <p className="text-white/70 text-sm mb-2">
+                    Please Wait for your code ticket is generating...
+                  </p>
+                  <Button
+                    disabled
+                    className="w-full max-w-xs bg-white/10 text-white"
+                  >
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isConfirming ? "Confirming..." : "Generating..."}
+                  </Button>
+                </div>
               ) : (
                 !validationComplete && (
                   <Button

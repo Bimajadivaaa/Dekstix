@@ -70,6 +70,73 @@ import { TICKETING_ADDRESS } from "@/config/const";
 
 const SEPOLIA_EXPLORER = "https://sepolia.etherscan.io";
 
+// Tambahkan komponen SkeletonCard
+const SkeletonCard = () => {
+  return (
+    <div className="bg-[#1a1a1a] border border-white/10 rounded-lg overflow-hidden">
+      {/* Image skeleton */}
+      <div className="h-36 bg-white/5 animate-pulse" />
+
+      {/* Badge skeletons */}
+      <div className="absolute top-3 right-3">
+        <div className="h-6 w-20 bg-white/10 rounded-full animate-pulse" />
+      </div>
+      <div className="absolute top-3 left-3">
+        <div className="h-6 w-24 bg-white/10 rounded-full animate-pulse" />
+      </div>
+
+      {/* Content skeleton */}
+      <div className="p-6 space-y-4">
+        {/* Title skeleton */}
+        <div className="h-6 w-3/4 bg-white/10 rounded animate-pulse" />
+        
+        {/* Details skeleton */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-4 bg-white/10 rounded animate-pulse" />
+            <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-4 bg-white/10 rounded animate-pulse" />
+            <div className="h-4 w-24 bg-white/10 rounded animate-pulse" />
+          </div>
+        </div>
+
+        {/* Button skeleton */}
+        <div className="flex gap-2 mt-4">
+          <div className="h-10 w-full bg-white/10 rounded animate-pulse" />
+          <div className="h-10 w-10 bg-white/10 rounded animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Tambahkan komponen SkeletonTable
+const SkeletonTable = () => {
+  return (
+    <div className="w-full space-y-4">
+      {/* Header skeleton */}
+      <div className="flex gap-4 border-b border-white/10 pb-4">
+        <div className="h-8 w-1/4 bg-white/10 rounded animate-pulse" />
+        <div className="h-8 w-1/4 bg-white/10 rounded animate-pulse" />
+        <div className="h-8 w-1/4 bg-white/10 rounded animate-pulse" />
+        <div className="h-8 w-1/4 bg-white/10 rounded animate-pulse" />
+      </div>
+
+      {/* Rows skeleton */}
+      {[...Array(5)].map((_, index) => (
+        <div key={index} className="flex gap-4 py-4 border-b border-white/10">
+          <div className="h-6 w-1/4 bg-white/10 rounded animate-pulse" />
+          <div className="h-6 w-1/4 bg-white/10 rounded animate-pulse" />
+          <div className="h-6 w-1/4 bg-white/10 rounded animate-pulse" />
+          <div className="h-6 w-1/4 bg-white/10 rounded animate-pulse" />
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export default function Profile() {
   const { address } = useWallet();
   const [copiedAddress, setCopiedAddress] = useState(false);
@@ -313,7 +380,7 @@ export default function Profile() {
               <CardHeader className="pb-2">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <CardTitle className="text-white text-4xl font-mono">
+                    <CardTitle className="text-white text-xl font-mono">
                       My NFT Ticket Collection
                     </CardTitle>
                     <CardDescription className="text-white/70 mt-4 text-md font-mono">
@@ -325,8 +392,10 @@ export default function Profile() {
 
               <CardContent className="pt-6">
                 {isLoadingTickets ? (
-                  <div className="flex justify-center items-center h-40">
-                    <Loader2 className="h-8 w-8 animate-spin text-white/70" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[...Array(6)].map((_, index) => (
+                      <SkeletonCard key={index} />
+                    ))}
                   </div>
                 ) : tickets.length === 0 ? (
                   <div className="text-center py-12">
@@ -530,8 +599,8 @@ export default function Profile() {
                     <CardTitle className="text-white">
                       Purchase History
                     </CardTitle>
-                    <CardDescription className="text-white/70">
-                      Track all your ticket purchases
+                    <CardDescription className="text-white/70 mt-4 text-md">
+                      History of your ticket purchases.
                     </CardDescription>
                   </div>
                 </div>
@@ -539,9 +608,7 @@ export default function Profile() {
 
               <CardContent>
                 {isLoadingHistory ? (
-                  <div className="flex justify-center items-center h-40">
-                    <Loader2 className="h-8 w-8 animate-spin text-white/70" />
-                  </div>
+                  <SkeletonTable />
                 ) : !hasHistory ? (
                   <div className="text-center py-12">
                     <History className="h-12 w-12 mx-auto mb-4 text-white/30" />

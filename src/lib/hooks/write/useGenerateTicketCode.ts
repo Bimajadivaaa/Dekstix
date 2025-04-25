@@ -7,6 +7,8 @@ import React from "react";
 import { toast } from "sonner";
 
 export const useGenerateTicketCode = () => {
+  const [savedTxHash, setSavedTxHash] = React.useState<string | undefined>();
+  
   const {
     writeContract,
     isPending: isGenerating,
@@ -24,6 +26,13 @@ export const useGenerateTicketCode = () => {
   } = useWaitForTransactionReceipt({
     hash: txHash,
   });
+
+  // Save txHash when it becomes available
+  React.useEffect(() => {
+    if (txHash) {
+      setSavedTxHash(txHash);
+    }
+  }, [txHash]);
 
   const generateTicketCode = async (tokenId: number) => {
     try {
@@ -87,6 +96,6 @@ export const useGenerateTicketCode = () => {
     isSubmitted,
     isGenerateSuccess,
     error: generateError || confirmError,
-    txHash,
+    txHash: savedTxHash,
   };
 };

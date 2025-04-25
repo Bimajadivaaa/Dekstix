@@ -111,7 +111,7 @@ export function Navbar() {
                     )}
                   >
                     <QrCode className="h-4 w-4" />
-                    Validation
+                    Generate Ticket Code
                   </Button>
                 </Link>
               </NavigationMenuItem>
@@ -254,7 +254,7 @@ export function Navbar() {
                       active={isActive("/Validation/Validation")}
                       icon={<QrCode className="h-4 w-4" />}
                     >
-                      Validation
+                      Generate Ticket Code
                     </MobileNavLink>
                     <MobileNavLink 
                       href="/Profile/Profile" 

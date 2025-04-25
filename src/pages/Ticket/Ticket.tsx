@@ -25,6 +25,7 @@ import { events as fallbackEvents } from "../../dataTicket/ticketData";
 import { Event, TicketTier } from "../../lib/type";
 import { useGetAllEvents } from "@/lib/hooks/read/useGetAllEvents";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TicketingSystem() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -120,6 +121,36 @@ export default function TicketingSystem() {
     } else if (selectedEvent) {
       setSelectedEvent(null);
     }
+  };
+
+  // Buat komponen SkeletonCard
+  const SkeletonCard = () => {
+    return (
+      <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
+        {/* Image skeleton */}
+        <Skeleton className="w-full h-48 bg-white/10" />
+        
+        <div className="p-4 space-y-4">
+          {/* Title skeleton */}
+          <Skeleton className="h-6 w-3/4 bg-white/10" />
+          
+          {/* Description skeleton */}
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full bg-white/10" />
+            <Skeleton className="h-4 w-2/3 bg-white/10" />
+          </div>
+          
+          {/* Details skeleton */}
+          <div className="flex items-center gap-2 mt-4">
+            <Skeleton className="h-4 w-24 bg-white/10" />
+            <Skeleton className="h-4 w-24 bg-white/10" />
+          </div>
+          
+          {/* Button skeleton */}
+          <Skeleton className="h-9 w-full bg-white/10 mt-4" />
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -221,11 +252,10 @@ export default function TicketingSystem() {
 
               <TabsContent value="upcoming" className="space-y-4">
                 {isFetchingData ? (
-                  <div className="flex justify-center items-center h-40">
-                    <Loader2 className="h-8 w-8 animate-spin text-white/70" />
-                    <span className="ml-2 text-white/70 flex items-center gap-2">
-                      <Ticket className="h-4 w-4" /> Loading events...
-                    </span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[...Array(6)].map((_, index) => (
+                      <SkeletonCard key={index} />
+                    ))}
                   </div>
                 ) : filteredEvents.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -24,12 +24,13 @@ export function EventCard({ event, onSelect }: EventCardProps) {
         <Image
           src={event.image}
           alt={event.title}
-          className="w-full h-full object-cover filter brightness-90 contrast-125"
+          className="w-full h-full object-cover filter brightness-90 contrast-125 cursor-pointer"
           width={1920}
           height={1080}
           quality={100}
           priority
           loading="eager"
+          onClick={() => onSelect(event)}
         />
       </div>
 
@@ -45,7 +46,12 @@ export function EventCard({ event, onSelect }: EventCardProps) {
             </Badge>
           ))}
         </div>
-        <CardTitle className="text-white">{event.title}</CardTitle>
+        <CardTitle
+          className="text-white cursor-pointer"
+          onClick={() => onSelect(event)}
+        >
+          {event.title}
+        </CardTitle>
         <CardDescription className="text-white/70">
           {event.description}
         </CardDescription>
