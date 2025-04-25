@@ -2,7 +2,7 @@
 
 import { useAccount } from "wagmi";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,7 +45,6 @@ import {
   ExternalLink,
   History,
   User,
-  Settings,
   LogOut,
   Check,
   Filter,
@@ -54,112 +53,54 @@ import {
   HelpCircle,
 } from "lucide-react";
 import nftImage from "../../public/Images/nft-ticket.png";
+import { useGetMyTicket } from "@/lib/hooks/read/useGetMyTicket";
+import { useGetHistoryPurchase } from "@/lib/hooks/read/useGetHistoryPurchase";
+import { useWallet } from "@/lib/hooks/use-wallet";
+import { toast } from "sonner";
+import { useGetStatusNFT } from "@/lib/hooks/read/useGetStatusNFT";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { QRCode } from "@/components/ui/qr-code";
+import { useGetTicketCode } from "@/lib/hooks/read/useGetTicketCode";
+import { TICKETING_ADDRESS } from "@/config/const";
 
-export default function EnhancedProfile() {
-  const { address } = useAccount();
+export default function Profile() {
+  const { address } = useWallet();
   const [copiedAddress, setCopiedAddress] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [selectedTicketForQR, setSelectedTicketForQR] = useState<bigint | null>(null);
 
-  // Simulate NFT collection with more details
-  const tickets = [
-    {
-      id: "T1001",
-      title: "Music Festival 2025",
-      image: nftImage,
-      date: "March 20, 2025",
-      location: "Surakarta, Jawa Tengah",
-      status: "upcoming", // upcoming, past, active
-      tokenId: "3742",
-    },
-    {
-      id: "T1002",
-      title: "Tech Conference 2025",
-      image: nftImage,
-      date: "April 15, 2025",
-      location: "Convention Center, San Francisco",
-      status: "upcoming",
-      tokenId: "5126",
-    },
-    {
-      id: "T1003",
-      title: "Art Exhibition Opening",
-      image: nftImage,
-      date: "February 5, 2025",
-      location: "Modern Art Gallery, Chicago",
-      status: "active",
-      tokenId: "8302",
-    },
-    {
-      id: "T1004",
-      title: "Tech Summit 2024",
-      image: nftImage,
-      date: "December 10, 2024",
-      location: "Tech Hub, Austin",
-      status: "past",
-      tokenId: "2451",
-    },
-    {
-      id: "T1005",
-      title: "Music Festival 2024",
-      image: nftImage,
-      date: "August 15, 2024",
-      location: "Surakarta, Jawa Tengah",
-      status: "past",
-      tokenId: "1735",
-    },
-    {
-      id: "T1006",
-      title: "Blockchain Conference",
-      image: nftImage,
-      date: "May 25, 2025",
-      location: "Crypto Center, Miami",
-      status: "upcoming",
-      tokenId: "4217",
-    },
-  ];
+  // Use the hooks to get ticket and purchase history data
+  const { 
+    tickets = [], 
+    isLoading: isLoadingTickets,
+    refetch: refetchTickets 
+  } = useGetMyTicket();
 
-  // Purchase history data
-  const purchaseHistory = [
-    {
-      id: "P10024",
-      event: "Music Festival 2025",
-      date: "January 15, 2025",
-      price: "0.05 IDR",
-      status: "Completed",
-      txHash: "0x3f7a...4e92",
-    },
-    {
-      id: "P10023",
-      event: "Tech Conference 2025",
-      date: "January 10, 2025",
-      price: "0.03 IDR",
-      status: "Completed",
-      txHash: "0x8c9d...1a3b",
-    },
-    {
-      id: "P10022",
-      event: "Art Exhibition Opening",
-      date: "December 28, 2024",
-      price: "0.02 IDR",
-      status: "Completed",
-      txHash: "0x7d2e...9c4f",
-    },
-    {
-      id: "P10021",
-      event: "Tech Summit 2024",
-      date: "November 30, 2024",
-      price: "0.04 IDR",
-      status: "Completed",
-      txHash: "0x2a5b...6d7e",
-    },
-    {
-      id: "P10020",
-      event: "Blockchain Conference",
-      date: "December 5, 2024",
-      price: "0.06 IDR",
-      status: "Completed",
-      txHash: "0x1e3f...8a2c",
-    },
-  ];
+  const { 
+    purchaseHistory = [], 
+    isLoading: isLoadingHistory,
+    refetch: refetchHistory,
+    hasHistory 
+  } = useGetHistoryPurchase();
+
+  // Get ticket code for QR display
+  const {
+    ticketCode: qrTicketCode,
+    isLoading: isLoadingQRCode
+  } = useGetTicketCode(selectedTicketForQR || undefined);
+
+  // Set mounted state once client is ready
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Fetch data when wallet is connected
+  useEffect(() => {
+    if (mounted && address) {
+      refetchTickets();
+      refetchHistory();
+    }
+  }, [mounted, address, refetchTickets, refetchHistory]);
 
   const handleCopyAddress = () => {
     if (address) {
@@ -169,11 +110,43 @@ export default function EnhancedProfile() {
     }
   };
 
-  const truncateAddress = (address: any) => {
+  const truncateAddress = (address: string | undefined) => {
     if (!address) return "Not Connected";
     return `${address.substring(0, 6)}...${address.substring(
       address.length - 4
     )}`;
+  };
+
+  // Format date from timestamp
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // Get ticket status based on event date and current time
+  const getTicketStatus = (eventDate: number) => {
+    const now = Math.floor(Date.now() / 1000);
+    if (eventDate < now) return "past";
+    if (eventDate - now < 86400) return "active"; // Less than 24 hours
+    return "upcoming";
+  };
+
+  // Map ticket types to their names
+  const TICKET_TYPES = ['STANDARD', 'PREMIUM', 'VIP'];
+
+  // Get ticket status for each ticket
+  const getTicketValidationStatus = (tokenId: bigint) => {
+    const { isUsed } = useGetStatusNFT(tokenId);
+    return isUsed;
+  };
+
+  // Function to format ticket code
+  const formatTicketCode = (code: string | undefined) => {
+    if (!code) return "No code generated";
+    return code;
   };
 
   return (
@@ -192,7 +165,7 @@ export default function EnhancedProfile() {
             <Avatar className="h-24 w-24 border-4 border-white/20">
               <AvatarImage src="" />
               <AvatarFallback className="bg-white/10 text-white/70 text-xl">
-                {address ? address.substring(2, 4).toUpperCase() : "NC"}
+                {mounted ? (address ? address.substring(2, 4).toUpperCase() : "NC") : ""}
               </AvatarFallback>
             </Avatar>
 
@@ -201,9 +174,6 @@ export default function EnhancedProfile() {
                 <h1 className="text-2xl font-bold text-white">
                   Crypto Collector
                 </h1>
-                <Badge className="bg-white/10 text-white/70 border-0 self-center hover:bg-white/20">
-                  <Ticket className="h-3 w-3 mr-1" /> NFT Enthusiast
-                </Badge>
               </div>
 
               <div
@@ -212,54 +182,14 @@ export default function EnhancedProfile() {
               >
                 <Wallet className="h-3.5 w-3.5" />
                 <span className="text-sm font-mono">
-                  {truncateAddress(address)}
+                  {mounted ? truncateAddress(address) : ""}
                 </span>
-                {copiedAddress ? (
+                {mounted && (copiedAddress ? (
                   <Check className="h-3.5 w-3.5 text-green-400" />
                 ) : (
                   <Copy className="h-3.5 w-3.5 opacity-70" />
-                )}
+                ))}
               </div>
-            </div>
-
-            <div className="ml-auto hidden md:block">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="text-white hover:bg-white/10"
-                  >
-                    <Settings className="h-5 w-5 mr-2" />
-                    <span>Settings</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="bg-[#1a1a1a] border-white/10"
-                >
-                  <DropdownMenuLabel className="text-white/70">
-                    My Account
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-white/10" />
-                  <DropdownMenuItem className="cursor-pointer text-white/70 hover:bg-white/10">
-                    <User className="h-4 w-4 mr-2" />
-                    <span>Profile Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer text-white/70 hover:bg-white/10">
-                    <Wallet className="h-4 w-4 mr-2" />
-                    <span>Wallet Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer text-white/70 hover:bg-white/10">
-                    <HelpCircle className="h-4 w-4 mr-2" />
-                    <span>Help Center</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-white/10" />
-                  <DropdownMenuItem className="cursor-pointer text-red-400 hover:bg-white/10">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    <span>Disconnect Wallet</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
 
@@ -269,11 +199,15 @@ export default function EnhancedProfile() {
               <div className="text-xs text-white/70">NFT Tickets</div>
             </div>
             <div className="bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">
+                {tickets.filter(ticket => getTicketStatus(Number(ticket.eventId)) === "upcoming").length}
+              </div>
               <div className="text-xs text-white/70">Upcoming Events</div>
             </div>
             <div className="bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <div className="text-2xl font-bold">2</div>
+              <div className="text-2xl font-bold">
+                {tickets.filter(ticket => getTicketStatus(Number(ticket.eventId)) === "past").length}
+              </div>
               <div className="text-xs text-white/70">Past Events</div>
             </div>
           </div>
@@ -360,122 +294,176 @@ export default function EnhancedProfile() {
               </CardHeader>
 
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {tickets.map((ticket) => (
-                    <motion.div
-                      key={ticket.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                    >
-                      <Card className="overflow-hidden border border-white/10 bg-[#1a1a1a] hover:shadow-xl hover:shadow-white/10 transition-shadow">
-                        <div className="relative">
-                          <div className="h-36 bg-white/5 border border-white/10 flex justify-center items-center">
-                            <Image
-                              src={ticket.image}
-                              alt={ticket.title}
-                              width={100}
-                              height={100}
-                              className="object-contain z-10 transform hover:scale-105 transition-transform filter brightness-90"
-                            />
-                          </div>
+                {isLoadingTickets ? (
+                  <div className="flex justify-center items-center h-40">
+                    <Loader2 className="h-8 w-8 animate-spin text-white/70" />
+                  </div>
+                ) : tickets.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Ticket className="h-12 w-12 mx-auto mb-4 text-white/30" />
+                    <h3 className="text-xl font-semibold text-white/70 mb-2">No NFT Tickets Found</h3>
+                    <p className="text-white/50">You don't have any NFT tickets yet.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {tickets.map((ticket) => {
+                      const status = getTicketStatus(Number(ticket.eventId));
+                      return (
+                        <motion.div
+                          key={ticket.tokenId.toString()}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                          whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                        >
+                          <Card className="overflow-hidden border border-white/10 bg-[#1a1a1a] hover:shadow-xl hover:shadow-white/10 transition-shadow">
+                            <div className="relative">
+                              <div className="h-36 bg-white/5 border border-white/10 flex justify-center items-center">
+                                <Image
+                                  src={nftImage}
+                                  alt={ticket.eventName}
+                                  width={100}
+                                  height={100}
+                                  className="object-contain z-10 transform hover:scale-105 transition-transform filter brightness-90"
+                                />
+                              </div>
 
-                          <div className="absolute top-3 right-3">
-                            <Badge
-                              className={
-                                ticket.status === "upcoming"
-                                  ? "bg-white/10 text-white/70 border border-white/20"
-                                  : ticket.status === "active"
-                                  ? "bg-green-500/20 text-green-400 border border-green-500/20"
-                                  : "bg-white/5 text-white/50 border border-white/10"
-                              }
-                            >
-                              {ticket.status === "upcoming" && "Upcoming"}
-                              {ticket.status === "active" && "Active"}
-                              {ticket.status === "past" && "Past"}
-                            </Badge>
-                          </div>
+                              <div className="absolute top-3 right-3">
+                                <Badge
+                                  className={
+                                    status === "upcoming"
+                                      ? "bg-white/10 text-white/70 border border-white/20"
+                                      : status === "active"
+                                      ? "bg-green-500/20 text-green-400 border border-green-500/20"
+                                      : "bg-white/5 text-white/50 border border-white/10"
+                                  }
+                                >
+                                  {status === "upcoming" && "Upcoming"}
+                                  {status === "active" && "Active"}
+                                  {status === "past" && "Past"}
+                                </Badge>
+                              </div>
 
-                          <div className="absolute top-3 left-3">
-                            <div className="bg-white/10 backdrop-blur-sm text-white/70 text-xs py-1 px-2 rounded border border-white/20">
-                              #{ticket.tokenId}
+                              <div className="absolute top-3 left-3">
+                                <div className="bg-white/10 backdrop-blur-sm text-white/70 text-xs py-1 px-2 rounded border border-white/20">
+                                  Token ID: {Number(ticket.tokenId)}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
 
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-lg text-white">
-                            {ticket.title}
-                          </CardTitle>
-                        </CardHeader>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-lg text-white">
+                                {ticket.eventName}
+                              </CardTitle>
+                            </CardHeader>
 
-                        <CardContent className="pb-0">
-                          <div className="space-y-2 text-sm">
-                            <div className="flex items-center gap-2">
-                              <CalendarDays className="h-4 w-4 text-white/50" />
-                              <span className="text-white/70">
-                                {ticket.date}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-white/50" />
-                              <span className="text-white/70">
-                                {ticket.location}
-                              </span>
-                            </div>
-                          </div>
-                        </CardContent>
+                            <CardContent className="pb-0">
+                              <div className="space-y-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                  <CalendarDays className="h-4 w-4 text-white/50" />
+                                  <span className="text-white/70">
+                                    {formatDate(Number(ticket.eventId))}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Ticket className="h-4 w-4 text-white/50" />
+                                  <span className="text-white/70">
+                                    {TICKET_TYPES[ticket.ticketType] || "Standard"}
+                                  </span>
+                                </div>
+                              </div>
+                            </CardContent>
 
-                        <CardFooter className="pt-4 pb-4 flex gap-2">
-                          <Button
-                            className={
-                              ticket.status === "past"
-                                ? "w-full bg-white/5 text-white/50 cursor-not-allowed border border-white/10"
-                                : "w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                            }
-                            disabled={ticket.status === "past"}
-                          >
-                            <QrCode className="h-4 w-4 mr-2" />
-                            {ticket.status === "active"
-                              ? "Show QR Code"
-                              : "Validate Ticket"}
-                          </Button>
+                            <CardFooter className="pt-4 pb-4 flex gap-2">
+                              {/* Ticket Action Button */}
+                              {status === "past" ? (
+                                <Button
+                                  className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                                  onClick={() => setSelectedTicketForQR(ticket.tokenId)}
+                                >
+                                  <QrCode className="h-4 w-4 mr-2" />
+                                  Show QR Code
+                                </Button>
+                              ) : getTicketValidationStatus(ticket.tokenId) ? (
+                                <Button
+                                  className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                                  onClick={() => setSelectedTicketForQR(ticket.tokenId)}
+                                >
+                                  <QrCode className="h-4 w-4 mr-2" />
+                                  Show QR Code
+                                </Button>
+                              ) : (
+                                <Button
+                                  className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                                  asChild
+                                >
+                                  <Link href={`/validation?tokenId=${ticket.tokenId}`}>
+                                    <QrCode className="h-4 w-4 mr-2" />
+                                    Validate Ticket
+                                  </Link>
+                                </Button>
+                              )}
 
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-10 w-10 bg-white/5 text-white/70 border-white/20 hover:bg-white/10"
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="bg-[#1a1a1a] border-white/10"
-                            >
-                              <DropdownMenuItem className="text-white/70 hover:bg-white/10 cursor-pointer">
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                <span>View on Explorer</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-white/70 hover:bg-white/10 cursor-pointer">
-                                <Download className="h-4 w-4 mr-2" />
-                                <span>Download</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-white/10" />
-                              <DropdownMenuItem className="text-white/70 hover:bg-white/10 cursor-pointer">
-                                <Copy className="h-4 w-4 mr-2" />
-                                <span>Copy Token ID</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </CardFooter>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
+                              {/* QR Code Dialog */}
+                              <Dialog open={selectedTicketForQR === ticket.tokenId} onOpenChange={() => setSelectedTicketForQR(null)}>
+                                <DialogContent className="bg-[#1a1a1a] border-white/10 text-white">
+                                  <DialogHeader>
+                                    <DialogTitle>Ticket QR Code</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="flex flex-col items-center gap-4 p-4">
+                                    {isLoadingQRCode ? (
+                                      <Loader2 className="h-8 w-8 animate-spin text-white/70" />
+                                    ) : (
+                                      <>
+                                        <QRCode value={qrTicketCode || ""} />
+                                        <div className="text-center">
+                                          <p className="text-sm text-white/70 mb-2">Ticket Code:</p>
+                                          <code className="font-mono text-lg font-bold text-white bg-white/5 px-3 py-1 rounded">
+                                            {formatTicketCode(qrTicketCode)}
+                                          </code>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-10 w-10 bg-white/5 text-white/70 border-white/20 hover:bg-white/10"
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="bg-[#1a1a1a] border-white/10"
+                                >
+                                  <DropdownMenuLabel className="text-white/70">
+                                    Token ID: {Number(ticket.tokenId)}
+                                  </DropdownMenuLabel>
+                                  <DropdownMenuSeparator className="bg-white/10" />
+                                  <DropdownMenuItem 
+                                    className="text-white/70 hover:bg-white/10 cursor-pointer"
+                                    onClick={() => {
+                                      window.open(`https://testnets.opensea.io/assets/sepolia/${TICKETING_ADDRESS}/${ticket.tokenId}`, '_blank');
+                                    }}
+                                  >
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    <span>View on OpenSea Testnet</span>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </CardFooter>
+                          </Card>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -495,111 +483,142 @@ export default function EnhancedProfile() {
                       Track all your ticket purchases
                     </CardDescription>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-9 bg-white/10 text-white border-white/20 hover:bg-white/20"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      <span>Export CSV</span>
-                    </Button>
-                  </div>
                 </div>
               </CardHeader>
 
               <CardContent>
-                <Table>
-                  <TableCaption className="text-white/50">
-                    A list of your recent ticket purchases.
-                  </TableCaption>
-                  <TableHeader>
-                    <TableRow className="border-white/10 hover:bg-white/5">
-                      <TableHead className="text-white/70">ID</TableHead>
-                      <TableHead className="text-white/70">Event</TableHead>
-                      <TableHead className="text-white/70">Date</TableHead>
-                      <TableHead className="text-white/70">Price</TableHead>
-                      <TableHead className="text-white/70">Status</TableHead>
-                      <TableHead className="text-right text-white/70">
-                        Actions
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {purchaseHistory.map((purchase) => (
-                      <TableRow
-                        key={purchase.id}
-                        className="border-white/10 hover:bg-white/5"
-                      >
-                        <TableCell className="font-medium text-white/70">
-                          {purchase.id}
-                        </TableCell>
-                        <TableCell className="text-white/70">
-                          {purchase.event}
-                        </TableCell>
-                        <TableCell className="text-white/70">
-                          {purchase.date}
-                        </TableCell>
-                        <TableCell className="text-white/70">
-                          {purchase.price}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className="bg-green-500/20 text-green-400 border-green-500/20"
-                          >
-                            {purchase.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-white/70 hover:bg-white/10"
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="bg-[#1a1a1a] border-white/10"
-                            >
-                              <DropdownMenuItem className="text-white/70 hover:bg-white/10 cursor-pointer">
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                <span>View Transaction</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-white/70 hover:bg-white/10 cursor-pointer">
-                                <Copy className="h-4 w-4 mr-2" />
-                                <span>Copy Tx Hash</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-white/70 hover:bg-white/10 cursor-pointer">
-                                <Download className="h-4 w-4 mr-2" />
-                                <span>Download Receipt</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
+                {isLoadingHistory ? (
+                  <div className="flex justify-center items-center h-40">
+                    <Loader2 className="h-8 w-8 animate-spin text-white/70" />
+                  </div>
+                ) : !hasHistory ? (
+                  <div className="text-center py-12">
+                    <History className="h-12 w-12 mx-auto mb-4 text-white/30" />
+                    <h3 className="text-xl font-semibold text-white/70 mb-2">No Purchase History</h3>
+                    <p className="text-white/50">You haven't purchased any tickets yet.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableCaption className="text-white/50">
+                      A list of your recent ticket purchases.
+                    </TableCaption>
+                    <TableHeader>
+                      <TableRow className="border-white/10 hover:bg-white/5">
+                        <TableHead className="text-white/70">Event Name</TableHead>
+                        <TableHead className="text-white/70">Event Date</TableHead>
+                        <TableHead className="text-white/70">Ticket Code</TableHead>
+                        <TableHead className="text-white/70">Type</TableHead>
+                        <TableHead className="text-white/70">Status</TableHead>
+                        <TableHead className="text-right text-white/70">
+                          Actions
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
+                    </TableHeader>
+                    <TableBody>
+                      {purchaseHistory.map((purchase) => (
+                        <TableRow
+                          key={purchase.tokenId.toString()}
+                          className="border-white/10 hover:bg-white/5"
+                        >
+                          <TableCell className="font-medium text-white/70">
+                            {purchase.eventName}
+                          </TableCell>
+                          <TableCell className="text-white/70">
+                            {formatDate(Number(purchase.eventDate))}
+                          </TableCell>
+                          <TableCell className="font-mono text-white/70">
+                            {purchase.ticketCode || "Not Generated"}
+                          </TableCell>
+                          <TableCell className="text-white/70">
+                            {TICKET_TYPES[purchase.ticketType] || "Standard"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                purchase.isUsed
+                                  ? "bg-green-500/20 text-green-400 border-green-500/20"
+                                  : purchase.isExpired
+                                  ? "bg-red-500/20 text-red-400 border-red-500/20"
+                                  : "bg-white/10 text-white/70 border-white/20"
+                              }
+                            >
+                              {purchase.isUsed
+                                ? "Used"
+                                : purchase.isExpired
+                                ? "Expired"
+                                : "Valid"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-white/70 hover:bg-white/10"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                className="bg-[#1a1a1a] border-white/10"
+                              >
+                                <DropdownMenuItem 
+                                  className="text-white/70 hover:bg-white/10 cursor-pointer"
+                                  onClick={() => {
+                                    if (purchase.ticketCode) {
+                                      navigator.clipboard.writeText(purchase.ticketCode);
+                                      toast.success("Ticket code copied to clipboard");
+                                    }
+                                  }}
+                                  disabled={!purchase.ticketCode}
+                                >
+                                  <Copy className="h-4 w-4 mr-2" />
+                                  <span>Copy Ticket Code</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  className="text-white/70 hover:bg-white/10 cursor-pointer"
+                                  onClick={() => setSelectedTicketForQR(purchase.tokenId)}
+                                >
+                                  <QrCode className="h-4 w-4 mr-2" />
+                                  <span>Show QR Code</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
 
-              <CardFooter className="flex justify-center pt-2">
-                <div className="flex items-center gap-2 text-sm text-white/70">
-                  <span>Showing 5 of 12 transactions</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  >
-                    Load More
-                  </Button>
-                </div>
-              </CardFooter>
+                {/* QR Code Dialog for Purchase History */}
+                <Dialog open={selectedTicketForQR !== null} onOpenChange={() => setSelectedTicketForQR(null)}>
+                  <DialogContent className="bg-[#1a1a1a] border-white/10 text-white">
+                    <DialogHeader>
+                      <DialogTitle>Ticket QR Code</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex flex-col items-center gap-4 p-4">
+                      {isLoadingQRCode ? (
+                        <Loader2 className="h-8 w-8 animate-spin text-white/70" />
+                      ) : (
+                        <>
+                          <QRCode value={qrTicketCode || ""} />
+                          <div className="text-center">
+                            <p className="text-sm text-white/70 mb-2">Ticket Code:</p>
+                            <code className="font-mono text-lg font-bold text-white bg-white/5 px-3 py-1 rounded">
+                              {formatTicketCode(qrTicketCode)}
+                            </code>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+              </CardContent>
             </Card>
           </TabsContent>
         </Tabs>

@@ -22,9 +22,9 @@ import {
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Event, TicketTier } from "../../lib/type";
-import { NFTArtDisplay } from "./nft-art-display";
 import { useGetTokenIDbyType } from "@/lib/hooks/read/useGetTokenIDbyType";
 import { useBuyTicket } from "@/lib/hooks/write/useBuyTicket";
+import { useGenerateTicketVIPImage } from "@/lib/hooks/write/useGenerateTicketVIP";
 import { toast } from "sonner";
 
 interface TicketCheckoutProps {
@@ -36,7 +36,6 @@ export function TicketCheckout({
   selectedEvent,
   selectedTicket,
 }: TicketCheckoutProps) {
-  const [generatingArt, setGeneratingArt] = useState(false);
   const [nftArtGenerated, setNftArtGenerated] = useState(false);
   const [selectedTokenId, setSelectedTokenId] = useState<bigint | number | null>(null);
   
@@ -48,6 +47,13 @@ export function TicketCheckout({
     if (name.includes('vip')) return 2;
     return 0; 
   };
+  
+  // Use the VIP NFT image generator hook
+  const { 
+    artworkUrl, 
+    isGenerating, 
+    generateArtwork 
+  } = useGenerateTicketVIPImage();
   
   // Fetch token IDs
   const { 
@@ -99,21 +105,34 @@ export function TicketCheckout({
     }).format(idrValue);
   };
 
-  const handleGenerateArt = () => {
-    setGeneratingArt(true);
-    setTimeout(() => {
-      setGeneratingArt(false);
+  const handleGenerateArt = async () => {
+    try {
+      await generateArtwork({
+        eventName: selectedEvent.title,
+        ticketId: selectedTokenId?.toString() || selectedTicket.id,
+        seed: `vip-${selectedEvent.id}-${selectedTicket.id}-${Date.now()}`
+      });
       setNftArtGenerated(true);
-    }, 2000);
+    } catch (error) {
+      console.error("Error generating artwork:", error);
+      toast.error("Failed to generate NFT artwork");
+    }
   };
 
-  const handleRegenerateArt = () => {
-    setGeneratingArt(true);
+  const handleRegenerateArt = async () => {
     setNftArtGenerated(false);
-    setTimeout(() => {
-      setGeneratingArt(false);
+    try {
+      // Add current timestamp to ensure different seed
+      await generateArtwork({
+        eventName: selectedEvent.title,
+        ticketId: selectedTokenId?.toString() || selectedTicket.id,
+        seed: `vip-${selectedEvent.id}-${selectedTicket.id}-${Date.now()}`
+      });
       setNftArtGenerated(true);
-    }, 2000);
+    } catch (error) {
+      console.error("Error regenerating artwork:", error);
+      toast.error("Failed to regenerate NFT artwork");
+    }
   };
   
   const handleTokenIdChange = (tokenId: bigint | number) => {
@@ -149,7 +168,7 @@ export function TicketCheckout({
         </CardHeader>
 
         <CardContent className="p-6">
-          {isVIP && !nftArtGenerated && !generatingArt && (
+          {isVIP && !nftArtGenerated && !isGenerating && (
             <div className="mb-6 flex flex-col items-center justify-center p-6 border-2 border-dashed border-white/20 rounded-lg">
               <Sparkles className="h-10 w-10 text-white/70 mb-3" />
               <h3 className="text-lg font-medium mb-2 text-white">
@@ -168,7 +187,7 @@ export function TicketCheckout({
             </div>
           )}
 
-          {generatingArt && (
+          {isGenerating && (
             <div className="mb-6 flex flex-col items-center justify-center p-6 border-2 border-dashed border-white/20 rounded-lg">
               <RefreshCw className="h-10 w-10 text-white/70 mb-3 animate-spin" />
               <h3 className="text-lg font-medium mb-2 text-white">
@@ -180,27 +199,47 @@ export function TicketCheckout({
             </div>
           )}
 
-          {nftArtGenerated && isVIP && (
+          {nftArtGenerated && artworkUrl && isVIP && (
             <div className="mb-6">
-              <NFTArtDisplay
-                event={selectedEvent}
-                ticketTier={selectedTicket}
-              />
+              <div className="aspect-square rounded-lg overflow-hidden border border-white/20 bg-black/40">
+                <img 
+                  src={artworkUrl} 
+                  alt="VIP Ticket NFT" 
+                  className="w-full h-full object-cover"
+                />
+
+              </div>
               <div className="flex justify-center mt-4">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleRegenerateArt}
+                  disabled={isGenerating}
                   className="bg-white/5 text-white/70 border-white/20 hover:bg-white/10"
                 >
-                  <RefreshCw className="h-3 w-3 mr-2" /> Generate New Design
+                  {isGenerating ? (
+                    <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3 w-3 mr-2" />
+                  )}
+                  Generate New Design
                 </Button>
               </div>
             </div>
           )}
 
           {isVIP ? (
-            <div className="flex items-start"></div>
+            !nftArtGenerated && !isGenerating && (
+              <div className="mb-6 flex items-start">
+                <Image
+                  src={selectedEvent.image}
+                  alt={selectedEvent.title}
+                  className="w-[30%] h-full object-cover rounded-md filter brightness-90"
+                  width={80}
+                  height={80}
+                />
+              </div>
+            )
           ) : (
             <div className="mb-6 flex items-start">
               <Image
@@ -258,7 +297,7 @@ export function TicketCheckout({
                             : "bg-white/5 text-white/60 hover:bg-white/10"
                         }`}
                       >
-                        {String(tokenId)}
+                        #{String(tokenId)}
                       </button>
                     ))}
                   </div>
@@ -283,7 +322,7 @@ export function TicketCheckout({
             <CardTitle className="text-white">Complete your purchase</CardTitle>
             <CardDescription className="text-white/70">
               Selected ticket: <span className="font-bold">{selectedTicket.name}</span> 
-              {selectedTokenId && <span> - NFT Token ID : {String(selectedTokenId)}</span>}
+              {selectedTokenId && <span> - NFT Token ID : #{String(selectedTokenId)}</span>}
             </CardDescription>
           </CardHeader>
 
@@ -317,7 +356,7 @@ export function TicketCheckout({
                   <div className="flex items-start gap-2">
                     <Ticket className="h-5 w-5 text-white/50 shrink-0 mt-0.5" />
                     <span className="text-white/70">
-                      Token ID : {String(selectedTokenId)}
+                      Token ID : #{String(selectedTokenId)}
                     </span>
                   </div>
                   <p className="text-xs text-white/50 mt-2">
@@ -325,6 +364,19 @@ export function TicketCheckout({
                   </p>
                 </div>
               )}
+              
+              {/* Price summary */}
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <h3 className="font-medium mb-2 text-white">Price Summary:</h3>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-white/70">{selectedTicket.name}</span>
+                  <span className="text-white/90">{selectedTicket.price} ETH</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-white/60">IDR Equivalent</span>
+                  <span className="text-white/60">{convertEthToIdr(selectedTicket.price)}</span>
+                </div>
+              </div>
               
               {isBuyTicketSuccess && txHash && (
                 <div className="mt-4 p-3 bg-green-900/20 border border-green-500/30 rounded-md">

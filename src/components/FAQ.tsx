@@ -146,7 +146,7 @@ export default function EnhancedFAQ() {
           </div>
         )}
         
-        <div className="mt-10 text-center">
+        {/* <div className="mt-10 text-center">
           <p className="text-white/70 mb-4">
             Still have questions? We're here to help!
           </p>
@@ -158,7 +158,7 @@ export default function EnhancedFAQ() {
               Join Discord
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );

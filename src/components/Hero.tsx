@@ -57,7 +57,7 @@ export default function Hero() {
               </Button>
             </div>
             
-            <div className="flex items-center gap-6 pt-4">
+            {/* <div className="flex items-center gap-6 pt-4">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="w-10 h-10 rounded-full border-2 border-white/20 overflow-hidden shadow-inner">
@@ -68,7 +68,7 @@ export default function Hero() {
               <div className="text-sm text-white/70">
                 <strong className="text-white">1,000+</strong> collectors have secured their ticket NFTs
               </div>
-            </div>
+            </div> */}
           </div>
           
           <div className="relative">

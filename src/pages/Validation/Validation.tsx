@@ -1,74 +1,335 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  ShieldCheck, 
-  Loader2, 
-  CheckCircle2, 
-  Ticket, 
+import {
+  ShieldCheck,
+  Loader2,
+  CheckCircle2,
+  Ticket,
   AlertCircle,
-  Wallet
+  Wallet,
+  ChevronDown,
+  Copy,
+  QrCode,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import nftImage from "../../public/Images/nft-ticket.png";
-import { useGetNFTBalance } from "@/lib/hooks/read/useGetNFTBalance";
-import { useWallet } from "@/lib/hooks/use-wallet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import nftImageFallback from "../../public/Images/nft-ticket.png";
+import { useWallet } from "../../lib/hooks/use-wallet";
+import { useGetMyTicket } from "@/lib/hooks/read/useGetMyTicket";
+import { useGenerateTicketCode } from "@/lib/hooks/write/useGenerateTicketCode";
+import { useGetTicketCode } from "@/lib/hooks/read/useGetTicketCode";
+import { toast } from "sonner";
+import { useGetStatusNFT } from "@/lib/hooks/read/useGetStatusNFT";
+import { cn } from "@/lib/utils";
+import { QRCode } from "@/components/ui/qr-code";
+import { motion } from "framer-motion";
+import { useSearchParams } from 'next/navigation';
+
+// Define the ticket type based on the contract's TicketWithNFT struct
+type Ticket = {
+  tokenId: bigint;
+  eventId: bigint;
+  eventName: string;
+  ticketType: number;
+  tokenURI: string;
+};
+
+// Define NFT metadata type
+type NFTMetadata = {
+  name: string;
+  description: string;
+  image: string;
+};
+
+// Map for ticket types
+const TICKET_TYPES = ["STANDARD", "PREMIUM", "VIP"];
 
 export default function EnhancedValidation() {
+  // Add mounted state to handle hydration
+  const [mounted, setMounted] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [validationComplete, setValidationComplete] = useState(false);
   const [accessCode, setAccessCode] = useState("");
   const [progress, setProgress] = useState(0);
-  
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [nftMetadata, setNftMetadata] = useState<NFTMetadata | null>(null);
+  const [showQRCode, setShowQRCode] = useState(false);
+  const searchParams = useSearchParams();
+
+  // Use the get ticket code hook with proper conversion
+  const {
+    ticketCode: fetchedTicketCode,
+    isLoading: isLoadingCode,
+    refetch: refetchCode,
+    error: ticketCodeError,
+  } = useGetTicketCode(
+    selectedTicket?.tokenId ? BigInt(selectedTicket.tokenId) : undefined
+  );
+
+  // Set mounted state once client is ready
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Use the wallet hook to get connection status and address
   const { address, isConnected } = useWallet();
-  
-  // Use the NFT balance hook to get the number of NFTs
-  const { 
-    balance: nftBalance, 
-    isLoading: isLoadingNFTs, 
-    hasNFTs, 
-    refetch: refetchNFTs 
-  } = useGetNFTBalance();
 
-  // Fetch NFT balance when wallet is connected
+  // Use the ticket hook to get NFT tickets
+  const {
+    tickets = [],
+    isLoading: isLoadingTickets,
+    refetch: refetchTickets,
+  } = useGetMyTicket();
+
+  // Use the generate ticket code hook
+  const {
+    generateTicketCode,
+    isGenerating,
+    isConfirming,
+    isGenerateSuccess,
+    error: generateError,
+    txHash,
+  } = useGenerateTicketCode();
+
+  // Add status check hook
+  const {
+    isUsed,
+    isLoading: isLoadingStatus,
+    error: statusError,
+    refetch: refetchStatus,
+  } = useGetStatusNFT(
+    selectedTicket?.tokenId ? BigInt(selectedTicket.tokenId) : undefined
+  );
+
+  // Combined loading state for the validation process
+  const isProcessing = isValidating || isGenerating || isConfirming;
+
+  // Fetch NFT tickets when wallet is connected
   useEffect(() => {
-    if (isConnected && address) {
-      refetchNFTs();
+    if (mounted && isConnected && address) {
+      refetchTickets();
     }
-  }, [isConnected, address, refetchNFTs]);
+  }, [mounted, isConnected, address, refetchTickets]);
 
-  // Simulate validation process
-  const handleValidate = () => {
+  // Determine if user has any NFT tickets
+  const hasNFTs = tickets.length > 0;
+
+  // If tickets are available, select the first one by default
+  useEffect(() => {
+    if (mounted && hasNFTs && !selectedTicket) {
+      setSelectedTicket(tickets[0] as Ticket);
+    }
+  }, [mounted, tickets, hasNFTs, selectedTicket]);
+
+  // Function to fetch NFT metadata
+  const fetchNFTMetadata = async (tokenURI: string) => {
+    if (!mounted) return;
+
+    try {
+      // If the tokenURI is an IPFS URL, convert it to use a public gateway
+      const ipfsUrl = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/");
+      const response = await fetch(ipfsUrl);
+      const metadata = await response.json();
+      setNftMetadata(metadata);
+    } catch (error) {
+      console.error("Error fetching NFT metadata:", error);
+      setNftMetadata(null);
+    }
+  };
+
+  // Fetch metadata when selected ticket changes
+  useEffect(() => {
+    if (mounted && selectedTicket?.tokenURI) {
+      fetchNFTMetadata(selectedTicket.tokenURI);
+    }
+  }, [mounted, selectedTicket]);
+
+  // Update progress during validation
+  useEffect(() => {
+    if (!mounted) return;
+
+    let progressInterval: NodeJS.Timeout;
+
+    if (isGenerating || isConfirming) {
+      // Start or continue progress animation
+      setIsValidating(true);
+
+      if (isGenerating && progress < 50) {
+        progressInterval = setInterval(() => {
+          setProgress((prev) => Math.min(prev + 2, 50));
+        }, 150);
+      } else if (isConfirming && progress >= 50 && progress < 95) {
+        progressInterval = setInterval(() => {
+          setProgress((prev) => Math.min(prev + 2, 95));
+        }, 150);
+      }
+    }
+
+    // Clean up interval
+    return () => {
+      if (progressInterval) clearInterval(progressInterval);
+    };
+  }, [mounted, isGenerating, isConfirming, progress]);
+
+  // Effect to handle successful ticket code generation
+  useEffect(() => {
+    if (!mounted) return;
+
+    if (isGenerateSuccess && txHash) {
+      // Finalize the progress animation
+      setProgress(100);
+
+      // Wait a bit for the transaction to be mined and then fetch the code
+      setTimeout(async () => {
+        setIsValidating(false);
+        setValidationComplete(true);
+
+        // Refetch the ticket code
+        await refetchCode();
+      }, 2000); // Increased timeout to ensure transaction is mined
+    }
+  }, [mounted, isGenerateSuccess, txHash, refetchCode]);
+
+  // Effect to check status after validation
+  useEffect(() => {
+    if (validationComplete) {
+      refetchStatus();
+    }
+  }, [validationComplete, refetchStatus]);
+
+  // Debug logs
+  useEffect(() => {
+    if (selectedTicket) {
+      console.log("Selected Ticket ID:", selectedTicket.tokenId);
+      console.log("Fetched Ticket Code:", fetchedTicketCode);
+      console.log("Ticket Code Error:", ticketCodeError);
+    }
+  }, [selectedTicket, fetchedTicketCode, ticketCodeError]);
+
+  // Handle errors
+  useEffect(() => {
+    if (!mounted) return;
+
+    if (generateError && isValidating) {
+      setIsValidating(false);
+      setProgress(0);
+      toast.error("Validation failed", {
+        description:
+          "There was an error validating your ticket. Please try again.",
+      });
+    }
+  }, [mounted, generateError, isValidating]);
+
+  // Function to validate ticket on the blockchain
+  const handleValidate = async () => {
+    if (!mounted || !selectedTicket) return;
+
     setIsValidating(true);
     setProgress(0);
-    
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsValidating(false);
-          setValidationComplete(true);
-          setAccessCode("DKST-" + Math.floor(100000 + Math.random() * 900000));
-          return 100;
-        }
-        return prev + 5;
-      });
-    }, 150);
+
+    try {
+      // Call the function from our hook
+      await generateTicketCode(Number(selectedTicket.tokenId));
+    } catch (error) {
+      console.error("Error initiating ticket validation:", error);
+      setIsValidating(false);
+      setProgress(0);
+    }
   };
+
+  // Handle ticket selection
+  const handleTicketSelect = (tokenId: string) => {
+    const selected = tickets.find(
+      (ticket) => ticket.tokenId.toString() === tokenId
+    );
+    if (selected) {
+      setSelectedTicket(selected);
+    }
+  };
+
+  // Function to get status message and style
+  const getStatusDisplay = () => {
+    if (isLoadingStatus) {
+      return {
+        message: "Checking ticket status...",
+        className: "bg-white/10 text-white/70 border-white/20",
+      };
+    }
+    if (statusError) {
+      return {
+        message: "Error checking status",
+        className: "bg-red-500/20 text-red-400 border-red-500/20",
+      };
+    }
+    if (isUsed) {
+      return {
+        message: "Ticket Used",
+        className: "bg-green-500/20 text-green-400 border-green-500/20",
+      };
+    }
+    return {
+      message: "Ticket Valid",
+      className: "bg-white/10 text-white/70 border-white/20",
+    };
+  };
+
+  // Function to check if validation should be disabled
+  const isValidationDisabled = () => {
+    if (!selectedTicket) return true;
+    if (isUsed) return true;
+
+    return false;
+  };
+
+  // Function to get validation button text
+  const getValidationButtonText = () => {
+    if (isUsed) return "Ticket Already Used";
+    return "Validate Ticket";
+  };
+
+  // Function to format ticket code
+  const formatTicketCode = (code: string | undefined) => {
+    if (!code) return "No code generated";
+    return code;
+  };
+
+  // Set QR code visibility based on URL parameter
+  useEffect(() => {
+    if (mounted && searchParams.get('showQR') === 'true') {
+      setShowQRCode(true);
+    }
+  }, [mounted, searchParams]);
+
+  // Return null or loading state during server-side rendering
+  if (!mounted) {
+    return (
+      <div className="relative py-16 px-4 min-h-screen overflow-hidden bg-gradient-to-br from-black via-[#0a0a0a] to-black text-white">
+        <div className="container mx-auto max-w-4xl flex items-center justify-center min-h-[70vh]">
+          <Loader2 className="h-10 w-10 text-white/70 animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative py-16 px-4 min-h-screen overflow-hidden bg-gradient-to-br from-black via-[#0a0a0a] to-black text-white">
@@ -77,77 +338,113 @@ export default function EnhancedValidation() {
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/10 to-white/20 animate-gradient-x"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-white/20 to-white/30 mix-blend-overlay animate-gradient-y"></div>
       </div>
-      
+
       {/* Decorative elements */}
       <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full mix-blend-screen filter blur-xl opacity-20"></div>
       <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white/10 rounded-full mix-blend-screen filter blur-xl opacity-20"></div>
-      
+
       <div className="container relative mx-auto max-w-4xl">
         <div className="flex flex-col items-center mb-12 text-center">
           <Badge className="mb-4 px-3 py-1 bg-white/10 text-white/70 rounded-full border border-white/20">
-            <ShieldCheck className="h-3.5 w-3.5 mr-1 text-white/70" /> Secure Verification
+            <ShieldCheck className="h-3.5 w-3.5 mr-1 text-white/70" /> Secure
+            Verification
           </Badge>
-          
+
           <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white">
             Validate your NFT Ticket
           </h1>
-          
+
           <p className="text-lg text-white/70 max-w-2xl">
-            Verify your <span className="text-white/90 font-semibold">NFT</span> ticket to receive a unique access code for event entry
+            Verify your <span className="text-white/90 font-semibold">NFT</span>{" "}
+            ticket to receive a unique access code for event entry
           </p>
         </div>
-        
+
         <div className="mx-auto max-w-xl">
           <Card className="bg-[#1a1a1a] border border-white/10">
             <CardHeader className="text-center pb-2">
-              <CardTitle className="text-xl text-white">Wallet Verification</CardTitle>
+              <CardTitle className="text-xl text-white">
+                Wallet Verification
+              </CardTitle>
               <CardDescription className="text-white/70">
-                Connect your wallet to automatically detect and validate your NFT tickets
+                Connect your wallet to automatically detect and validate your
+                NFT tickets
               </CardDescription>
             </CardHeader>
-            
+
             <CardContent className="space-y-6 pb-4">
               {isConnected && (
                 <div className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between">
                   <div className="flex items-center">
                     <Wallet className="h-5 w-5 text-white/60 mr-2" />
-                    <span className="text-sm text-white/80">Connected: {address?.substring(0, 6)}...{address?.substring(address.length - 4)}</span>
+                    <span className="text-sm text-white/80">
+                      Connected: {address?.substring(0, 6)}...
+                      {address?.substring(address.length - 4)}
+                    </span>
                   </div>
-                  <Badge variant="outline" className="bg-white/10 border-white/20 text-white/80">
-                    {isLoadingNFTs ? (
+                  <Badge
+                    variant="outline"
+                    className="bg-white/10 border-white/20 text-white/80"
+                  >
+                    {isLoadingTickets ? (
                       <Loader2 className="h-3 w-3 animate-spin mr-1" />
                     ) : (
                       <Ticket className="h-3 w-3 mr-1" />
                     )}
-                    {isLoadingNFTs ? "Loading..." : `${nftBalance || 0} Tickets`}
+                    {isLoadingTickets
+                      ? "Loading..."
+                      : `${tickets.length} Tickets`}
                   </Badge>
                 </div>
               )}
 
               <div className="flex justify-center">
                 <div className="relative w-48 h-48 rounded-lg overflow-hidden border border-white/20">
-                  <Image 
-                    src={nftImage} 
-                    alt="NFT Ticket" 
-                    fill
-                    className="object-cover filter brightness-90"
-                  />
-                  
+                  {/* Show NFT image from the selected ticket if available */}
+                  {selectedTicket ? (
+                    <Image
+                      src={
+                        nftMetadata?.image
+                          ? nftMetadata.image.replace(
+                              "ipfs://",
+                              "https://ipfs.io/ipfs/"
+                            )
+                          : nftImageFallback
+                      }
+                      alt={nftMetadata?.name || "NFT Ticket"}
+                      fill
+                      className="object-cover filter brightness-90"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = nftImageFallback.src;
+                      }}
+                    />
+                  ) : (
+                    <Image
+                      src={nftImageFallback}
+                      alt="NFT Ticket Placeholder"
+                      fill
+                      className="object-cover filter brightness-90"
+                    />
+                  )}
+
                   {!isConnected && (
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
                       <AlertCircle className="h-10 w-10 text-white/70" />
                     </div>
                   )}
-                  
-                  {isConnected && !hasNFTs && !isLoadingNFTs && (
+
+                  {isConnected && !hasNFTs && !isLoadingTickets && (
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
                       <div className="text-center p-3">
                         <AlertCircle className="h-10 w-10 text-amber-400/70 mx-auto mb-2" />
-                        <p className="text-sm text-white/80">No tickets found</p>
+                        <p className="text-sm text-white/80">
+                          No tickets found
+                        </p>
                       </div>
                     </div>
                   )}
-                  
+
                   {validationComplete && (
                     <div className="absolute inset-0 bg-green-500/20 backdrop-blur-sm flex items-center justify-center">
                       <div className="bg-white/10 rounded-full p-2 shadow-lg">
@@ -157,64 +454,230 @@ export default function EnhancedValidation() {
                   )}
                 </div>
               </div>
-              
-              {isConnected && hasNFTs && !validationComplete && !isValidating && (
-                <div className="text-center space-y-2">
-                  <h3 className="font-medium text-white">NFT Ticket Found</h3>
-                  <p className="text-sm text-white/70">
-                    Event: Music Festival 2025<br />
-                    Date: March 20, 2025<br />
-                    Token ID: #3742
-                  </p>
-                </div>
-              )}
-              
+
+              {isConnected &&
+                hasNFTs &&
+                !validationComplete &&
+                !isValidating && (
+                  <div className="space-y-4">
+                    {tickets.length > 1 && (
+                      <div className="space-y-2">
+                        <label className="text-sm text-white/70">
+                          Select Ticket to Validate
+                        </label>
+                        <Select
+                          value={selectedTicket?.tokenId.toString()}
+                          onValueChange={handleTicketSelect}
+                        >
+                          <SelectTrigger className="w-full bg-white/5 border-white/10 text-white">
+                            <SelectValue placeholder="Select a ticket" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#1a1a1a] border-white/10">
+                            {tickets.map((ticket) => (
+                              <SelectItem
+                                key={ticket.tokenId.toString()}
+                                value={ticket.tokenId.toString()}
+                                className="text-white hover:bg-white/10"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Ticket className="h-4 w-4" />
+                                  <span>Ticket #{Number(ticket.tokenId)}</span>
+                                  <Badge
+                                    variant="outline"
+                                    className="ml-auto bg-white/10 border-white/20 text-white/80"
+                                  >
+                                    {TICKET_TYPES[ticket.ticketType] ||
+                                      "Standard"}
+                                  </Badge>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    {selectedTicket && (
+                      <div className="text-center space-y-2">
+                        <h3 className="font-medium text-white">
+                          {selectedTicket.eventName || "NFT Ticket Found"}
+                        </h3>
+                        <div className="flex items-center justify-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className={getStatusDisplay().className}
+                          >
+                            {isLoadingStatus && (
+                              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                            )}
+                            {getStatusDisplay().message}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className="bg-white/10 text-white/70 border-white/20"
+                          >
+                            {TICKET_TYPES[selectedTicket.ticketType] ||
+                              "Standard"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-white/70">
+                          Token ID: #{Number(selectedTicket.tokenId)}
+                        </p>
+                        <div className="text-sm text-white/70 mt-1 flex items-center gap-2 justify-center">
+                          Ticket Code:{" "}
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono">
+                              {isLoadingCode ? (
+                                <Loader2 className="h-3 w-3 animate-spin inline" />
+                              ) : (
+                                <span className="font-bold">
+                                  {formatTicketCode(fetchedTicketCode)}
+                                </span>
+                              )}
+                            </span>
+                            {fetchedTicketCode && !isLoadingCode && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-5 w-5 text-white/50 hover:text-white hover:bg-white/10"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(
+                                      fetchedTicketCode
+                                    );
+                                    toast.success(
+                                      "Ticket code copied to clipboard"
+                                    );
+                                  }}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                          
+                        </div>
+
+                        <div className="flex items-center gap-2 justify-center">
+                            <Button
+                              variant="ghost"
+                              className="h-7 px-2 text-white/50 hover:text-white hover:bg-white/10 text-xs flex items-center gap-1"
+                              onClick={() => setShowQRCode(!showQRCode)}
+                            >
+                              <QrCode className="h-3 w-3" />
+                              {showQRCode ? "Hide QR Code" : "Show QR Code"}
+                            </Button>
+                          </div>
+
+                        {/* QR Code */}
+                        {fetchedTicketCode && !isLoadingCode && showQRCode && (
+                          <motion.div
+                            className="mt-4"
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <QRCode value={fetchedTicketCode} />
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
               {isValidating && (
                 <div className="space-y-3">
                   <div className="text-center">
                     <Loader2 className="h-8 w-8 text-white/70 animate-spin mx-auto mb-2" />
-                    <h3 className="font-medium text-white">Validating your ticket</h3>
-                    <p className="text-sm text-white/70">Please wait while we verify your NFT</p>
+                    <h3 className="font-medium text-white">
+                      Validating your ticket
+                    </h3>
+                    <p className="text-sm text-white/70">
+                      {isGenerating
+                        ? "Sending transaction to blockchain..."
+                        : isConfirming
+                        ? "Waiting for confirmation..."
+                        : "Please wait while we verify your NFT"}
+                    </p>
                   </div>
-                  
+
                   <Progress value={progress} className="h-2 bg-white/10" />
-                  
+
                   <div className="text-xs text-white/50 flex justify-between">
-                    <span>Checking blockchain</span>
+                    <span>
+                      {isGenerating
+                        ? "Generating ticket code"
+                        : isConfirming
+                        ? "Confirming transaction"
+                        : "Processing"}
+                    </span>
                     <span>{progress}%</span>
                   </div>
                 </div>
               )}
-              
+
               {validationComplete && (
                 <div className="space-y-4">
                   <div className="text-center">
-                    <h3 className="font-medium text-white mb-1">Validation Complete</h3>
-                    <p className="text-sm text-white/70">Your ticket has been successfully validated</p>
+                    <h3 className="font-medium text-white mb-1">
+                      Validation Complete
+                    </h3>
+                    <p className="text-sm text-white/70">
+                      Your ticket has been successfully validated
+                    </p>
+                    <Badge
+                      variant="outline"
+                      className={getStatusDisplay().className}
+                      style={{ marginTop: "0.5rem" }}
+                    >
+                      {isLoadingStatus && (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      )}
+                      {getStatusDisplay().message}
+                    </Badge>
                   </div>
-                  
+
                   <div className="bg-white/5 p-4 rounded-lg border border-white/20">
-                    <p className="text-sm text-white/70 mb-1">Your Access Code:</p>
+                    <p className="text-sm text-white/70 mb-1">
+                      Your Access Code:
+                    </p>
                     <div className="flex items-center justify-between gap-2">
                       <code className="font-mono text-xl font-bold text-white tracking-wide">
-                        {accessCode}
+                        {isLoadingCode ? (
+                          <Loader2 className="h-6 w-6 animate-spin" />
+                        ) : fetchedTicketCode ? (
+                          fetchedTicketCode
+                        ) : (
+                          "No code available"
+                        )}
                       </code>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="h-8 text-xs bg-white/10 text-white border-white/20 hover:bg-white/20" 
-                        onClick={() => navigator.clipboard.writeText(accessCode)}
-                      >
-                        Copy
-                      </Button>
+                      {fetchedTicketCode && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs bg-white/10 text-white border-white/20 hover:bg-white/20"
+                          onClick={() => {
+                            navigator.clipboard.writeText(fetchedTicketCode);
+                            toast.success("Code copied to clipboard");
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      )}
                     </div>
+                    {ticketCodeError && (
+                      <p className="text-sm text-red-400 mt-2">
+                        Error fetching ticket code. Please try again.
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
             </CardContent>
-            
+
             <Separator className="bg-white/10 mb-4" />
-            
+
             <CardFooter className="flex justify-center pt-0 pb-6">
               {!isConnected ? (
                 <div className="w-full max-w-xs">
@@ -225,19 +688,19 @@ export default function EnhancedValidation() {
                       openAccountModal,
                       openChainModal,
                       openConnectModal,
-                      mounted,
+                      mounted: rainbowKitMounted,
                     }) => {
-                      const ready = mounted;
+                      const ready = rainbowKitMounted;
                       const connected = ready && account && chain;
 
                       return (
                         <div
                           {...(!ready && {
-                            'aria-hidden': true,
+                            "aria-hidden": true,
                             style: {
                               opacity: 0,
-                              pointerEvents: 'none',
-                              userSelect: 'none',
+                              pointerEvents: "none",
+                              userSelect: "none",
                             },
                           })}
                           className="w-full"
@@ -245,8 +708,8 @@ export default function EnhancedValidation() {
                           {(() => {
                             if (!connected) {
                               return (
-                                <Button 
-                                  onClick={openConnectModal} 
+                                <Button
+                                  onClick={openConnectModal}
                                   className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
                                 >
                                   Connect Wallet
@@ -261,38 +724,55 @@ export default function EnhancedValidation() {
                     }}
                   </ConnectButton.Custom>
                 </div>
+              ) : isLoadingTickets ? (
+                <Button
+                  disabled
+                  className="w-full max-w-xs bg-white/10 text-white"
+                >
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading tickets...
+                </Button>
+              ) : !hasNFTs ? (
+                <Button
+                  disabled
+                  className="w-full max-w-xs bg-white/10 text-white/70 border border-white/10"
+                >
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  No NFT tickets found
+                </Button>
+              ) : isProcessing ? (
+                <Button
+                  disabled
+                  className="w-full max-w-xs bg-white/10 text-white"
+                >
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isGenerating
+                    ? "Generating Code..."
+                    : isConfirming
+                    ? "Confirming..."
+                    : "Validating..."}
+                </Button>
               ) : (
-                isLoadingNFTs ? (
-                  <Button disabled className="w-full max-w-xs bg-white/10 text-white">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading tickets...
+                !validationComplete && (
+                  <Button
+                    onClick={handleValidate}
+                    className={cn(
+                      "w-full max-w-xs border border-white/20",
+                      isValidationDisabled()
+                        ? "bg-white/5 text-white/50 cursor-not-allowed"
+                        : "bg-white/10 text-white hover:bg-white/20"
+                    )}
+                    disabled={isValidationDisabled()}
+                  >
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    {getValidationButtonText()}
                   </Button>
-                ) : !hasNFTs ? (
-                  <Button disabled className="w-full max-w-xs bg-white/10 text-white/70 border border-white/10">
-                    <AlertCircle className="mr-2 h-4 w-4" />
-                    No NFT tickets found
-                  </Button>
-                ) : isValidating ? (
-                  <Button disabled className="w-full max-w-xs bg-white/10 text-white">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Validating...
-                  </Button>
-                ) : (
-                  !validationComplete && (
-                    <Button 
-                      onClick={handleValidate} 
-                      className="w-full max-w-xs bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                    >
-                      <ShieldCheck className="mr-2 h-4 w-4" />
-                      Validate Ticket
-                    </Button>
-                  )
                 )
               )}
-              
+
               {validationComplete && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full max-w-xs bg-white/10 text-green-400 border-green-400/20 hover:bg-white/20"
                   disabled
                 >
@@ -303,13 +783,16 @@ export default function EnhancedValidation() {
             </CardFooter>
           </Card>
         </div>
-        
+
         <div className="mt-12 text-center text-white/70 max-w-lg mx-auto">
-          <h3 className="font-semibold text-white mb-2">How Validation Works</h3>
+          <h3 className="font-semibold text-white mb-2">
+            How Validation Works
+          </h3>
           <p className="text-sm">
-            Our secure verification system checks the blockchain to confirm your ticket NFT ownership.
-            Once validated, you'll receive a unique access code that can be shown at the event entrance.
-            This process ensures that only valid ticket holders can gain access.
+            Our secure verification system checks the blockchain to confirm your
+            ticket NFT ownership. Once validated, you'll receive a unique access
+            code that can be shown at the event entrance. This process ensures
+            that only valid ticket holders can gain access.
           </p>
         </div>
       </div>
