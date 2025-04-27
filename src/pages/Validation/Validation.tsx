@@ -310,7 +310,7 @@ export default function EnhancedValidation() {
 
   // Function to get validation button text
   const getValidationButtonText = () => {
-    if (isUsed) return "Ticket Already Used";
+    if (isUsed) return "Ticket Already Generated";
     return "Generate Ticket Code";
   };
 
@@ -497,7 +497,7 @@ export default function EnhancedValidation() {
                           </div>
                         </div>
 
-                        {progress > 50 && fetchedTicketCode && (
+                        {/* {progress > 50 && fetchedTicketCode && (
                           <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -512,7 +512,7 @@ export default function EnhancedValidation() {
                               </code>
                             </div>
                           </motion.div>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   )}
@@ -530,7 +530,6 @@ export default function EnhancedValidation() {
                 </div>
               )}
 
-              {/* Add QR Code and Ticket Code section below NFT image */}
               {validationComplete && fetchedTicketCode && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -538,83 +537,78 @@ export default function EnhancedValidation() {
                   className="mt-8 space-y-6"
                 >
                   <div className="bg-white/5 rounded-xl border border-white/10 p-3 flex flex-col items-center gap-4">
-                    {isLoadingDetails ? (
-                      <div className="flex flex-col items-center gap-3 py-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-white/50" />
-                        <p className="text-sm text-white/70">Loading ticket details...</p>
+                    <div className="bg-white/5 rounded-lg p-4">
+                      <QRCode value={fetchedTicketCode} />
+                    </div>
+                    <div className="text-center space-y-1">
+                      <p className="text-sm text-white/70 p-2">
+                        Your Ticket Code:
+                      </p>
+                      <div className="flex items-center gap-2 justify-center">
+                        <code className="font-mono text-base font-bold text-white bg-white/10 px-2 py-2 rounded-lg">
+                          {fetchedTicketCode}
+                        </code>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 text-white/50 hover:text-white hover:bg-white/10"
+                          onClick={() => {
+                            navigator.clipboard.writeText(fetchedTicketCode);
+                            toast.success("Ticket code copied to clipboard");
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
                       </div>
-                    ) : (
-                      <>
-                        <div className="bg-white/5 rounded-lg p-4">
-                          <QRCode value={fetchedTicketCode} />
-                        </div>
-                        <div className="text-center space-y-1">
-                          <p className="text-sm text-white/70 p-2">
-                            Your Ticket Code:
+                      {txHash && (
+                        <div className="mt-6 text-sm border-t border-white/10 pt-4">
+                          <p className="text-white/70 mb-2">
+                            Transaction Details:
                           </p>
-                          <div className="flex items-center gap-2 justify-center">
-                            <code className="font-mono text-base font-bold text-white bg-white/10 px-2 py-2 rounded-lg">
-                              {fetchedTicketCode}
-                            </code>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-9 w-9 text-white/50 hover:text-white hover:bg-white/10"
-                              onClick={() => {
-                                navigator.clipboard.writeText(fetchedTicketCode);
-                                toast.success("Ticket code copied to clipboard");
-                              }}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          {txHash && (
-                            <div className="mt-6 text-sm border-t border-white/10 pt-4">
-                              <p className="text-white/70 mb-2">Transaction Details:</p>
-                              <div className="flex flex-col items-center gap-2">
-                                <div className="flex items-center justify-center gap-2">
-                                  <code className="font-mono text-xs text-white/90 bg-white/10 px-2 py-1 rounded">
-                                    {txHash.slice(0, 10)}...{txHash.slice(-8)}
-                                  </code>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 text-white/50 hover:text-white hover:bg-white/10"
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(txHash);
-                                      toast.success("Transaction hash copied to clipboard");
-                                    }}
-                                  >
-                                    <Copy className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                                <a
-                                  href={`https://sepolia.etherscan.io/tx/${txHash}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors mt-2"
-                                >
-                                  View on Sepolia Explorer
-                                  <svg
-                                    className="h-3 w-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                                    />
-                                  </svg>
-                                </a>
-                              </div>
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="flex items-center justify-center gap-2">
+                              <code className="font-mono text-xs text-white/90 bg-white/10 px-2 py-1 rounded">
+                                {txHash.slice(0, 10)}...{txHash.slice(-8)}
+                              </code>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-white/50 hover:text-white hover:bg-white/10"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(txHash);
+                                  toast.success(
+                                    "Transaction hash copied to clipboard"
+                                  );
+                                }}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
                             </div>
-                          )}
+                            <a
+                              href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors mt-2"
+                            >
+                              View on Sepolia Explorer
+                              <svg
+                                className="h-3 w-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                />
+                              </svg>
+                            </a>
+                          </div>
                         </div>
-                      </>
-                    )}
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-center w-full">
                     <Button
@@ -660,7 +654,7 @@ export default function EnhancedValidation() {
                                 <div className="flex items-center gap-2">
                                   <Ticket className="h-4 w-4 text-white" />
                                   <span className="text-sm font-mono font-medium text-white">
-                                    Ticket {Number(ticket.tokenId)}
+                                    {ticket.eventName} Ticket
                                   </span>
                                   <Badge
                                     variant="outline"

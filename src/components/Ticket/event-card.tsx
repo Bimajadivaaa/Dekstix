@@ -1,4 +1,4 @@
-import { Calendar, MapPin, Ticket } from "lucide-react";
+import { Calendar, MapPin, Speaker, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -73,6 +73,12 @@ export function EventCard({ event, onSelect }: EventCardProps) {
             <Ticket className="h-4 w-4 text-white/50" />
             <span className="text-sm text-white/70">
               {event.remaining} tickets remaining
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Speaker className="h-4 w-4 text-white/50" />
+            <span className="text-sm text-white/70">
+              {event.speakers}
             </span>
           </div>
         </div>

@@ -7,6 +7,7 @@ export const useGetAllEvents = () => {
     abi: TICKETING_ABI,
     functionName: "getAllEvents",
   });
+  console.log("allEvents", allEvents);
 
   return {
     allEvents,

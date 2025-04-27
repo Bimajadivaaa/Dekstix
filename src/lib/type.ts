@@ -12,6 +12,7 @@ export interface Event {
   remaining: number;
   categories: string[];
   isActive?: boolean; 
+  speakers: string;
 }
 
 export interface TicketTier {

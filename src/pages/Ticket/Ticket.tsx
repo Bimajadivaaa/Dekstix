@@ -40,7 +40,8 @@ export default function TicketingSystem() {
   const filteredEvents = formattedEvents.filter(event => 
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.location.toLowerCase().includes(searchQuery.toLowerCase())
+    event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.speakers.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   useEffect(() => {
@@ -77,7 +78,8 @@ export default function TicketingSystem() {
             image: formatImageUri(event.imageURI),
             capacity: Number(event.totalTickets || 0),
             remaining: Number(event.remainingTickets || 0),
-            categories: event.categories || []
+            categories: event.categories || [],
+            speakers: event.speakers || ""
           } as Event;
         }).filter((event): event is Event => event !== null);
         
@@ -85,13 +87,13 @@ export default function TicketingSystem() {
         setUseLocalData(false);
       } catch (err) {
         console.error("Error formatting events:", err);
-        setFormattedEvents(fallbackEvents);
+        setFormattedEvents(fallbackEvents as Event[]);
         setUseLocalData(true);
       }
     } else if (!isFetchingData) {
       // If we're not still loading but have no data, use fallback
       console.log("No blockchain events found, using fallback data");
-      setFormattedEvents(fallbackEvents);
+      setFormattedEvents(fallbackEvents as Event[]);
       setUseLocalData(true);
     }
   }, [allEvents, isFetchingData]);

@@ -100,6 +100,15 @@ export function EventDetail({
                 </p>
               </div>
 
+              <div>
+                <h3 className="font-medium text-sm text-white/50 mb-1">
+                  Speaker
+                </h3>
+                <p className="text-white">
+                  {event.speakers}
+                </p>
+              </div>
+
               {event.categories && event.categories.length > 0 && (
                 <div>
                   <h3 className="font-medium text-sm text-white/50 mb-1">

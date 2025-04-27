@@ -51,6 +51,8 @@ import {
   HelpCircle,
   Eye,
   EyeOff,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import nftImage from "../../public/Images/nft-ticket.png";
 import { useGetMyTicket } from "@/lib/hooks/read/useGetMyTicket";
@@ -146,6 +148,10 @@ export default function Profile() {
   );
   const [visibleTicketCodes, setVisibleTicketCodes] = useState<{ [key: string]: boolean }>({});
   const [nftMetadata, setNftMetadata] = useState<{ [key: string]: any }>({});
+  const [collectionPage, setCollectionPage] = useState(1);
+  const [historyPage, setHistoryPage] = useState(1);
+  const itemsPerPage = 6; // NFT Collection per page
+  const historyPerPage = 8; // Purchase History per page
 
   // Use the hooks to get ticket and purchase history data
   const {
@@ -282,6 +288,20 @@ export default function Profile() {
     return purchase?.ticketCode ? true : false;
   };
 
+  // Pagination logic for NFT Collection
+  const totalCollectionPages = Math.ceil(tickets.length / itemsPerPage);
+  const paginatedTickets = tickets.slice(
+    (collectionPage - 1) * itemsPerPage,
+    collectionPage * itemsPerPage
+  );
+
+  // Pagination logic for Purchase History
+  const totalHistoryPages = Math.ceil(purchaseHistory.length / historyPerPage);
+  const paginatedHistory = purchaseHistory.slice(
+    (historyPage - 1) * historyPerPage,
+    historyPage * historyPerPage
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-[#0a0a0a] to-black text-white pb-16">
       {/* Profile Header */}
@@ -384,7 +404,7 @@ export default function Profile() {
                       My NFT Ticket Collection
                     </CardTitle>
                     <CardDescription className="text-white/70 mt-4 text-md font-mono">
-                      Manage and validate your NFT tickets
+                      View your NFT tickets collection
                     </CardDescription>
                   </div>
                 </div>
@@ -408,181 +428,202 @@ export default function Profile() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {tickets.map((ticket) => {
-                      const status = getTicketStatus(Number(ticket.eventId));
-                      return (
-                        <motion.div
-                          key={ticket.tokenId.toString()}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3 }}
-                          whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                        >
-                          <Card className="overflow-hidden border border-white/10 bg-[#1a1a1a] hover:shadow-xl hover:shadow-white/10 transition-shadow">
-                            <div className="relative">
-                              <div className="h-36 bg-white/5 border border-white/10 flex justify-center items-center">
-                                <Image
-                                  src={getImageUrl(ticket)}
-                                  alt={ticket.eventName}
-                                  width={100}
-                                  height={100}
-                                  className="w-[30%] h-full object-contain z-10 transform hover:scale-105 transition-transform filter brightness-90"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = nftImage.src;
-                                  }}
-                                />
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {paginatedTickets.map((ticket) => {
+                        const status = getTicketStatus(Number(ticket.eventId));
+                        return (
+                          <motion.div
+                            key={ticket.tokenId.toString()}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                            whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                          >
+                            <Card className="overflow-hidden border border-white/10 bg-[#1a1a1a] hover:shadow-xl hover:shadow-white/10 transition-shadow">
+                              <div className="relative">
+                                <div className="h-36 bg-white/5 border border-white/10 flex justify-center items-center">
+                                  <Image
+                                    src={getImageUrl(ticket)}
+                                    alt={ticket.eventName}
+                                    width={100}
+                                    height={100}
+                                    className="w-[30%] h-full object-contain z-10 transform hover:scale-105 transition-transform filter brightness-90"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.src = nftImage.src;
+                                    }}
+                                  />
+                                </div>
+
+                                {/* <div className="absolute top-3 right-3">
+                                  <Badge
+                                    className={
+                                      status === "upcoming"
+                                        ? "bg-white/10 text-white/70 border border-white/20"
+                                        : status === "active"
+                                        ? "bg-green-500/20 text-green-400 border border-green-500/20"
+                                        : "bg-white/5 text-white/50 border border-white/10"
+                                    }
+                                  >
+                                    {status === "upcoming" && "Upcoming"}
+                                    {status === "active" && "Active"}
+                                    {status === "past" && "Past"}
+                                  </Badge>
+                                </div> */}
+
+                                <div className="absolute top-3 left-3">
+                                  <div className="bg-white/10 backdrop-blur-sm text-white/70 text-xs py-1 px-2 rounded border border-white/20">
+                                    Token ID: {Number(ticket.tokenId)}
+                                  </div>
+                                </div>
                               </div>
 
-                              <div className="absolute top-3 right-3">
-                                <Badge
-                                  className={
-                                    status === "upcoming"
-                                      ? "bg-white/10 text-white/70 border border-white/20"
-                                      : status === "active"
-                                      ? "bg-green-500/20 text-green-400 border border-green-500/20"
-                                      : "bg-white/5 text-white/50 border border-white/10"
+                              <CardHeader className="pb-2">
+                                <CardTitle className="text-lg text-white">
+                                  {ticket.eventName}
+                                </CardTitle>
+                              </CardHeader>
+
+                              <CardContent className="pb-0">
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <Ticket className="h-4 w-4 text-white/50" />
+                                    <span className="text-white/70">
+                                      {TICKET_TYPES[ticket.ticketType] ||
+                                        "Standard"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </CardContent>
+
+                              <CardFooter className="pt-4 pb-4 flex gap-2">
+                                {/* Ticket Action Button */}
+                                {status === "past" ? (
+                                  <Button
+                                    className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                                    onClick={() => setSelectedTicketForQR(ticket.tokenId)}
+                                    disabled={!hasTicketCode(ticket.tokenId)}
+                                  >
+                                    <QrCode className="h-4 w-4 mr-2" />
+                                    {hasTicketCode(ticket.tokenId) ? "Show QR Code" : "Code Not Generated"}
+                                  </Button>
+                                ) : getTicketValidationStatus(ticket.tokenId) ? (
+                                  <Button
+                                    className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                                    onClick={() => setSelectedTicketForQR(ticket.tokenId)}
+                                    disabled={!hasTicketCode(ticket.tokenId)}
+                                  >
+                                    <QrCode className="h-4 w-4 mr-2" />
+                                    {hasTicketCode(ticket.tokenId) ? "Show QR Code" : "Code Not Generated"}
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
+                                    asChild
+                                  >
+                                    <Link href={`/validation?tokenId=${ticket.tokenId}`}>
+                                      <QrCode className="h-4 w-4 mr-2" />
+                                      Validate Ticket
+                                    </Link>
+                                  </Button>
+                                )}
+
+                                {/* QR Code Dialog */}
+                                <Dialog
+                                  open={selectedTicketForQR === ticket.tokenId}
+                                  onOpenChange={() =>
+                                    setSelectedTicketForQR(null)
                                   }
                                 >
-                                  {status === "upcoming" && "Upcoming"}
-                                  {status === "active" && "Active"}
-                                  {status === "past" && "Past"}
-                                </Badge>
-                              </div>
+                                  <DialogContent className="bg-[#1a1a1a] border-white/10 text-white">
+                                    <DialogHeader>
+                                      <DialogTitle>Ticket QR Code</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="flex flex-col items-center gap-4 p-4">
+                                      {isLoadingQRCode ? (
+                                        <Loader2 className="h-8 w-8 animate-spin text-white/70" />
+                                      ) : (
+                                        <>
+                                          <QRCode value={qrTicketCode || ""} />
+                                          <div className="text-center">
+                                            <p className="text-sm text-white/70 mb-2">
+                                              Ticket Code:
+                                            </p>
+                                            <code className="font-mono text-lg font-bold text-white bg-white/5 px-3 py-1 rounded">
+                                              {formatTicketCode(qrTicketCode)}
+                                            </code>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
 
-                              <div className="absolute top-3 left-3">
-                                <div className="bg-white/10 backdrop-blur-sm text-white/70 text-xs py-1 px-2 rounded border border-white/20">
-                                  Token ID: {Number(ticket.tokenId)}
-                                </div>
-                              </div>
-                            </div>
-
-                            <CardHeader className="pb-2">
-                              <CardTitle className="text-lg text-white">
-                                {ticket.eventName}
-                              </CardTitle>
-                            </CardHeader>
-
-                            <CardContent className="pb-0">
-                              <div className="space-y-2 text-sm">
-                                <div className="flex items-center gap-2">
-                                  <CalendarDays className="h-4 w-4 text-white/50" />
-                                  <span className="text-white/70">
-                                    {formatDate(Number(ticket.eventId))}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Ticket className="h-4 w-4 text-white/50" />
-                                  <span className="text-white/70">
-                                    {TICKET_TYPES[ticket.ticketType] ||
-                                      "Standard"}
-                                  </span>
-                                </div>
-                              </div>
-                            </CardContent>
-
-                            <CardFooter className="pt-4 pb-4 flex gap-2">
-                              {/* Ticket Action Button */}
-                              {status === "past" ? (
-                                <Button
-                                  className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                                  onClick={() => setSelectedTicketForQR(ticket.tokenId)}
-                                  disabled={!hasTicketCode(ticket.tokenId)}
-                                >
-                                  <QrCode className="h-4 w-4 mr-2" />
-                                  {hasTicketCode(ticket.tokenId) ? "Show QR Code" : "Code Not Generated"}
-                                </Button>
-                              ) : getTicketValidationStatus(ticket.tokenId) ? (
-                                <Button
-                                  className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                                  onClick={() => setSelectedTicketForQR(ticket.tokenId)}
-                                  disabled={!hasTicketCode(ticket.tokenId)}
-                                >
-                                  <QrCode className="h-4 w-4 mr-2" />
-                                  {hasTicketCode(ticket.tokenId) ? "Show QR Code" : "Code Not Generated"}
-                                </Button>
-                              ) : (
-                                <Button
-                                  className="w-full bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                                  asChild
-                                >
-                                  <Link href={`/validation?tokenId=${ticket.tokenId}`}>
-                                    <QrCode className="h-4 w-4 mr-2" />
-                                    Validate Ticket
-                                  </Link>
-                                </Button>
-                              )}
-
-                              {/* QR Code Dialog */}
-                              <Dialog
-                                open={selectedTicketForQR === ticket.tokenId}
-                                onOpenChange={() =>
-                                  setSelectedTicketForQR(null)
-                                }
-                              >
-                                <DialogContent className="bg-[#1a1a1a] border-white/10 text-white">
-                                  <DialogHeader>
-                                    <DialogTitle>Ticket QR Code</DialogTitle>
-                                  </DialogHeader>
-                                  <div className="flex flex-col items-center gap-4 p-4">
-                                    {isLoadingQRCode ? (
-                                      <Loader2 className="h-8 w-8 animate-spin text-white/70" />
-                                    ) : (
-                                      <>
-                                        <QRCode value={qrTicketCode || ""} />
-                                        <div className="text-center">
-                                          <p className="text-sm text-white/70 mb-2">
-                                            Ticket Code:
-                                          </p>
-                                          <code className="font-mono text-lg font-bold text-white bg-white/5 px-3 py-1 rounded">
-                                            {formatTicketCode(qrTicketCode)}
-                                          </code>
-                                        </div>
-                                      </>
-                                    )}
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-10 w-10 bg-white/5 text-white/70 border-white/20 hover:bg-white/10"
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      className="h-10 w-10 bg-white/5 text-white/70 border-white/20 hover:bg-white/10"
+                                    >
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent
+                                    align="end"
+                                    className="bg-[#1a1a1a] border-white/10"
                                   >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                  align="end"
-                                  className="bg-[#1a1a1a] border-white/10"
-                                >
-                                  <DropdownMenuLabel className="text-white/70">
-                                    Token ID: {Number(ticket.tokenId)}
-                                  </DropdownMenuLabel>
-                                  <DropdownMenuSeparator className="bg-white/10" />
-                                  <DropdownMenuItem
-                                    className="text-white/70 hover:bg-white/10 cursor-pointer"
-                                    onClick={() => {
-                                      window.open(
-                                        `https://testnets.opensea.io/assets/sepolia/${TICKETING_ADDRESS}/${ticket.tokenId}`,
-                                        "_blank"
-                                      );
-                                    }}
-                                  >
-                                    <ExternalLink className="h-4 w-4 mr-2" />
-                                    <span>View on OpenSea Testnet</span>
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </CardFooter>
-                          </Card>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
+                                    <DropdownMenuLabel className="text-white/70">
+                                      Token ID: {Number(ticket.tokenId)}
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator className="bg-white/10" />
+                                    <DropdownMenuItem
+                                      className="text-white/70 hover:bg-white/10 cursor-pointer"
+                                      onClick={() => {
+                                        window.open(
+                                          `https://testnets.opensea.io/assets/sepolia/${TICKETING_ADDRESS}/${ticket.tokenId}`,
+                                          "_blank"
+                                        );
+                                      }}
+                                    >
+                                      <ExternalLink className="h-4 w-4 mr-2" />
+                                      <span>View on OpenSea Testnet</span>
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </CardFooter>
+                            </Card>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                    {totalCollectionPages > 1 && (
+                      <div className="flex justify-center items-center gap-2 mt-6">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="bg-white/5 text-white/70 border-white/20 hover:bg-white/10"
+                          disabled={collectionPage === 1}
+                          onClick={() => setCollectionPage((p) => Math.max(1, p - 1))}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <span className="text-white/70 text-sm">
+                          Page {collectionPage} of {totalCollectionPages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="bg-white/5 text-white/70 border-white/20 hover:bg-white/10"
+                          disabled={collectionPage === totalCollectionPages}
+                          onClick={() => setCollectionPage((p) => Math.min(totalCollectionPages, p + 1))}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -620,163 +661,190 @@ export default function Profile() {
                     </p>
                   </div>
                 ) : (
-                  <Table>
-                    <TableCaption className="text-white/50">
-                      A list of your recent ticket purchases.
-                    </TableCaption>
-                    <TableHeader>
-                      <TableRow className="border-white/10 hover:bg-white/5">
-                        <TableHead className="text-white/70">
-                          Event Name
-                        </TableHead>
-                        <TableHead className="text-white/70">
-                          Event Date
-                        </TableHead>
-                        <TableHead className="text-white/70">
-                          Ticket Code
-                        </TableHead>
-                        <TableHead className="text-white/70">Type</TableHead>
-                        <TableHead className="text-white/70">Status</TableHead>
-                        <TableHead className="text-right text-white/70">
-                          Actions
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {purchaseHistory.map((purchase) => (
-                        <TableRow
-                          key={purchase.tokenId.toString()}
-                          className="border-white/10 hover:bg-white/5"
-                        >
-                          <TableCell className="font-medium text-white/70">
-                            {purchase.eventName}
-                          </TableCell>
-                          <TableCell className="text-white/70">
-                            {formatDate(Number(purchase.eventDate))}
-                          </TableCell>
-                          <TableCell className="font-mono text-white/70">
-                            <div className="flex items-center gap-2">
-                              {!shouldShowTicketCode(purchase) ? (
-                                <span className="text-white/50">Not generated yet</span>
-                              ) : purchase.ticketCode ? (
-                                <>
-                                  <span>
-                                    {visibleTicketCodes[purchase.tokenId.toString()] 
-                                      ? purchase.ticketCode 
-                                      : "••••••••••••"}
-                                  </span>
+                  <>
+                    <Table>
+                      <TableCaption className="text-white/50">
+                        A list of your recent ticket purchases.
+                      </TableCaption>
+                      <TableHeader>
+                        <TableRow className="border-white/10 hover:bg-white/5">
+                          <TableHead className="text-white/70">
+                            Event Name
+                          </TableHead>
+                          <TableHead className="text-white/70">
+                            Event Date
+                          </TableHead>
+                          <TableHead className="text-white/70">
+                            Ticket Code
+                          </TableHead>
+                          <TableHead className="text-white/70">Type</TableHead>
+                          <TableHead className="text-white/70">Status</TableHead>
+                          <TableHead className="text-right text-white/70">
+                            Actions
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedHistory.map((purchase) => (
+                          <TableRow
+                            key={purchase.tokenId.toString()}
+                            className="border-white/10 hover:bg-white/5"
+                          >
+                            <TableCell className="font-medium text-white/70">
+                              {purchase.eventName}
+                            </TableCell>
+                            <TableCell className="text-white/70">
+                              {formatDate(Number(purchase.eventDate))}
+                            </TableCell>
+                            <TableCell className="font-mono text-white/70">
+                              <div className="flex items-center gap-2">
+                                {!shouldShowTicketCode(purchase) ? (
+                                  <span className="text-white/50">Not generated yet</span>
+                                ) : purchase.ticketCode ? (
+                                  <>
+                                    <span>
+                                      {visibleTicketCodes[purchase.tokenId.toString()] 
+                                        ? purchase.ticketCode 
+                                        : "••••••••••••"}
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5 text-white/50 hover:text-white hover:bg-white/10"
+                                      onClick={() => toggleTicketCodeVisibility(purchase.tokenId.toString())}
+                                    >
+                                      {visibleTicketCodes[purchase.tokenId.toString()] ? (
+                                        <EyeOff className="h-3 w-3" />
+                                      ) : (
+                                        <Eye className="h-3 w-3" />
+                                      )}
+                                    </Button>
+                                  </>
+                                ) : (
+                                  "Not Generated"
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-white/70">
+                              {TICKET_TYPES[purchase.ticketType] || "Standard"}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={
+                                  purchase.isExpired
+                                    ? "bg-red-500/20 text-red-400 border-red-500/20"
+                                    : purchase.isUsed
+                                    ? "bg-green-500/20 text-green-400 border-green-500/20"
+                                    : "bg-white/10 text-white/70 border-white/20"
+                                }
+                              >
+                                {purchase.isExpired
+                                  ? "Expired"
+                                  : purchase.isUsed
+                                  ? "Ticket code generated"
+                                  : "Valid"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-5 w-5 text-white/50 hover:text-white hover:bg-white/10"
-                                    onClick={() => toggleTicketCodeVisibility(purchase.tokenId.toString())}
+                                    className="h-8 w-8 text-white/70 hover:bg-white/10"
                                   >
-                                    {visibleTicketCodes[purchase.tokenId.toString()] ? (
-                                      <EyeOff className="h-3 w-3" />
-                                    ) : (
-                                      <Eye className="h-3 w-3" />
-                                    )}
+                                    <MoreHorizontal className="h-4 w-4" />
                                   </Button>
-                                </>
-                              ) : (
-                                "Not Generated"
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-white/70">
-                            {TICKET_TYPES[purchase.ticketType] || "Standard"}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={
-                                purchase.isUsed
-                                  ? "bg-green-500/20 text-green-400 border-green-500/20"
-                                  : purchase.isExpired
-                                  ? "bg-red-500/20 text-red-400 border-red-500/20"
-                                  : "bg-white/10 text-white/70 border-white/20"
-                              }
-                            >
-                              {purchase.isUsed
-                                ? "Ticket code generated"
-                                : purchase.isExpired
-                                ? "Expired"
-                                : "Valid"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-white/70 hover:bg-white/10"
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="bg-[#1a1a1a] border-white/10"
                                 >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent
-                                align="end"
-                                className="bg-[#1a1a1a] border-white/10"
-                              >
-                                <DropdownMenuItem
-                                  className="text-white/70 hover:bg-white/10 cursor-pointer"
-                                  onClick={() => {
-                                    if (purchase.ticketCode && shouldShowTicketCode(purchase)) {
-                                      navigator.clipboard.writeText(purchase.ticketCode);
-                                      toast.success("Ticket code copied to clipboard");
-                                      // Show the code briefly when copying
-                                      toggleTicketCodeVisibility(purchase.tokenId.toString());
-                                      setTimeout(() => {
+                                  <DropdownMenuItem
+                                    className="text-white/70 hover:bg-white/10 cursor-pointer"
+                                    onClick={() => {
+                                      if (purchase.ticketCode && shouldShowTicketCode(purchase)) {
+                                        navigator.clipboard.writeText(purchase.ticketCode);
+                                        toast.success("Ticket code copied to clipboard");
+                                        // Show the code briefly when copying
                                         toggleTicketCodeVisibility(purchase.tokenId.toString());
-                                      }, 2000);
-                                    }
-                                  }}
-                                  disabled={!purchase.ticketCode || !shouldShowTicketCode(purchase)}
-                                >
-                                  <Copy className="h-4 w-4 mr-2" />
-                                  <span>Copy Ticket Code</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-white/70 hover:bg-white/10 cursor-pointer"
-                                  onClick={() => setSelectedTicketForQR(purchase.tokenId)}
-                                  disabled={!shouldShowTicketCode(purchase)}
-                                >
-                                  <QrCode className="h-4 w-4 mr-2" />
-                                  <span>Show QR Code</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-white/10" />
-                                <DropdownMenuItem
-                                  className="text-white/70 hover:bg-white/10 cursor-pointer"
-                                  onClick={() => {
-                                    window.open(
-                                      `${SEPOLIA_EXPLORER}/nft/${TICKETING_ADDRESS}/${purchase.tokenId}`,
-                                      "_blank"
-                                    );
-                                  }}
-                                >
-                                  <ExternalLink className="h-4 w-4 mr-2" />
-                                  <span>View on Explorer</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-white/70 hover:bg-white/10 cursor-pointer"
-                                  onClick={() => {
-                                    window.open(
-                                      `https://testnets.opensea.io/assets/sepolia/${TICKETING_ADDRESS}/${purchase.tokenId}`,
-                                      "_blank"
-                                    );
-                                  }}
-                                >
-                                  <ExternalLink className="h-4 w-4 mr-2" />
-                                  <span>View on OpenSea Testnet</span>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                                        setTimeout(() => {
+                                          toggleTicketCodeVisibility(purchase.tokenId.toString());
+                                        }, 2000);
+                                      }
+                                    }}
+                                    disabled={!purchase.ticketCode || !shouldShowTicketCode(purchase)}
+                                  >
+                                    <Copy className="h-4 w-4 mr-2" />
+                                    <span>Copy Ticket Code</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-white/70 hover:bg-white/10 cursor-pointer"
+                                    onClick={() => setSelectedTicketForQR(purchase.tokenId)}
+                                    disabled={!shouldShowTicketCode(purchase)}
+                                  >
+                                    <QrCode className="h-4 w-4 mr-2" />
+                                    <span>Show QR Code</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator className="bg-white/10" />
+                                  <DropdownMenuItem
+                                    className="text-white/70 hover:bg-white/10 cursor-pointer"
+                                    onClick={() => {
+                                      window.open(
+                                        `${SEPOLIA_EXPLORER}/nft/${TICKETING_ADDRESS}/${purchase.tokenId}`,
+                                        "_blank"
+                                      );
+                                    }}
+                                  >
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    <span>View on Explorer</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-white/70 hover:bg-white/10 cursor-pointer"
+                                    onClick={() => {
+                                      window.open(
+                                        `https://testnets.opensea.io/assets/sepolia/${TICKETING_ADDRESS}/${purchase.tokenId}`,
+                                        "_blank"
+                                      );
+                                    }}
+                                  >
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    <span>View on OpenSea Testnet</span>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    {totalHistoryPages > 1 && (
+                      <div className="flex justify-center items-center gap-2 mt-6">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="bg-white/5 text-white/70 border-white/20 hover:bg-white/10"
+                          disabled={historyPage === 1}
+                          onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <span className="text-white/70 text-sm">
+                          Page {historyPage} of {totalHistoryPages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="bg-white/5 text-white/70 border-white/20 hover:bg-white/10"
+                          disabled={historyPage === totalHistoryPages}
+                          onClick={() => setHistoryPage((p) => Math.min(totalHistoryPages, p + 1))}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* QR Code Dialog for Purchase History */}

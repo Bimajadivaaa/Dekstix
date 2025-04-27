@@ -15,6 +15,9 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: z.string().min(1),
     NEXT_PUBLIC_TICKETING_CONTRACT: z.string().min(1),
+    NEXT_PUBLIC_PINATA_API_KEY: z.string().min(1),
+    NEXT_PUBLIC_PINATA_SECRET_API_KEY: z.string().min(1),
+    NEXT_PUBLIC_PINATA_JWT_TOKEN: z.string().min(1),
   },
   /*
    * Due to how Next.js bundles environment variables on Edge and Client,
@@ -26,5 +29,8 @@ export const env = createEnv({
     NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:
       process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
     NEXT_PUBLIC_TICKETING_CONTRACT: process.env.NEXT_PUBLIC_TICKETING_CONTRACT,
+    NEXT_PUBLIC_PINATA_API_KEY: process.env.NEXT_PUBLIC_PINATA_API_KEY,
+    NEXT_PUBLIC_PINATA_SECRET_API_KEY: process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY,
+    NEXT_PUBLIC_PINATA_JWT_TOKEN: process.env.NEXT_PUBLIC_PINATA_JWT_TOKEN,
   },
 });
