@@ -30,6 +30,7 @@ export function EventDetail({
   const { convertEthToIdr, isLoading: isLoadingPrice } = useEthPrice();
 
   console.log("event id", event.id);
+  console.log("available tickets", event.remaining);
 
   // Create local ticket tiers with blockchain prices
   const updatedTicketTiers = ticketTiers.map((tier) => {
@@ -104,25 +105,8 @@ export function EventDetail({
                 <h3 className="font-medium text-sm text-white/50 mb-1">
                   Speaker
                 </h3>
-                <p className="text-white">
-                  {event.speakers}
-                </p>
+                <p className="text-white">{event.speakers}</p>
               </div>
-
-              {event.categories && event.categories.length > 0 && (
-                <div>
-                  <h3 className="font-medium text-sm text-white/50 mb-1">
-                    Categories
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {event.categories.map((category, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs">
-                        {category}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -179,29 +163,35 @@ export function EventDetail({
                 </div>
               )}
 
-              <Button
-                onClick={() => onSelectTicket(ticket)}
-                disabled={
-                  ticket.loading ||
-                  ("availableTickets" in ticket &&
+              {event.remaining > 0 ? (
+                <Button
+                  onClick={() => onSelectTicket(ticket)}
+                  disabled={
+                    ticket.loading ||
+                    ("availableTickets" in ticket &&
+                      ticket.availableTickets !== undefined &&
+                      ticket.availableTickets <= 0)
+                  }
+                  className="w-full bg-white text-black hover:bg-white/90"
+                >
+                  {ticket.loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading Price
+                    </>
+                  ) : "availableTickets" in ticket &&
                     ticket.availableTickets !== undefined &&
-                    ticket.availableTickets <= 0)
-                }
-                className="w-full bg-white text-black hover:bg-white/90"
-              >
-                {ticket.loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading Price
-                  </>
-                ) : "availableTickets" in ticket &&
-                  ticket.availableTickets !== undefined &&
-                  ticket.availableTickets <= 0 ? (
-                  "Sold Out"
-                ) : (
-                  `Buy for ${ticket.price} ETH`
-                )}
-              </Button>
+                    ticket.availableTickets <= 0 ? (
+                    "Sold Out"
+                  ) : (
+                    `Buy for ${ticket.price} ETH`
+                  )}
+                </Button>
+              ) : (
+                <Button disabled className="w-full bg-white/50 text-white">
+                  Sold Out
+                </Button>
+              )}
             </Card>
           ))}
         </div>
