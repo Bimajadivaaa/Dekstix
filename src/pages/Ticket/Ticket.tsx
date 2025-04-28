@@ -26,6 +26,7 @@ import { Event, TicketTier } from "../../lib/type";
 import { useGetAllEvents } from "@/lib/hooks/read/useGetAllEvents";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useWallet } from "@/lib/hooks/use-wallet";
 
 export default function TicketingSystem() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -35,6 +36,7 @@ export default function TicketingSystem() {
   const [searchQuery, setSearchQuery] = useState("");
   
   const { allEvents, isFetchingData } = useGetAllEvents();
+  const { address } = useWallet();
 
   // Filter events based on search query
   const filteredEvents = formattedEvents.filter(event => 
@@ -215,7 +217,17 @@ export default function TicketingSystem() {
           </div>
         )}
 
-        {!selectedEvent && (
+        {!address ? (
+          <div className="flex flex-col items-center justify-center h-96">
+            <Ticket className="h-12 w-12 mb-4 text-white/30" />
+            <h2 className="text-2xl font-semibold text-white/80 mb-2">
+              Please connect your wallet to view events
+            </h2>
+            <p className="text-white/60 mb-4">
+              Connect your wallet to browse and purchase event tickets.
+            </p>
+          </div>
+        ) : (
           <div>
             <Tabs defaultValue="upcoming" className="mb-8">
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-4">
