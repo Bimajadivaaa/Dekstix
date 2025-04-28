@@ -24,6 +24,7 @@ import {
   QrCode,
   Eye,
   EyeOff,
+  RefreshCcw
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -377,7 +378,7 @@ export default function EnhancedValidation() {
           <Card className="bg-[#1a1a1a] border border-white/10">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-xl text-white">
-                Wallet Detection
+                NFT 
               </CardTitle>
               <CardDescription className="text-white/70">
                 Connect your wallet to automatically detect your NFT tickets
@@ -903,7 +904,7 @@ export default function EnhancedValidation() {
                     )}
                     disabled={isValidationDisabled()}
                   >
-                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    <RefreshCcw className="mr-2 h-4 w-4" />
                     {getValidationButtonText()}
                   </Button>
                 )
