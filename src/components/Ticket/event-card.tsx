@@ -20,7 +20,7 @@ interface EventCardProps {
 export function EventCard({ event, onSelect }: EventCardProps) {
   return (
     <Card className="overflow-hidden bg-[#1a1a1a] border border-white/10 hover:shadow-xl hover:shadow-white/10 transition-all duration-300">
-      <div className="relative h-48 flex justify-center items-center bg-white/5 border-b border-white/10">
+      <div className="relative flex justify-center items-center bg-white/5 border-b border-white/10 h-[25rem]">
         <Image
           src={event.image}
           alt={event.title}

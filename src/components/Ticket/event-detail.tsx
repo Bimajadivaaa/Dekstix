@@ -62,13 +62,21 @@ export function EventDetail({
       {/* Event Details */}
       <div>
         <div className="overflow-hidden rounded-lg bg-white/5">
-          <div className="h-64 overflow-hidden">
+          <div className="relative w-full h-64 rounded-lg overflow-hidden">
             <Image
               src={event.image || "/placeholder-event.jpg"}
               alt={event.title}
-              className="w-full h-full object-cover"
-              width={100}
-              height={100}
+              className="absolute inset-0 w-full h-full object-cover blur-lg scale-110 brightness-75"
+              aria-hidden="true"
+              width={500}
+              height={500}
+            />
+            <Image
+              src={event.image || "/placeholder-event.jpg"}
+              alt={event.title}
+              className="relative w-full h-full object-contain z-10"
+              width={500}
+              height={500}
             />
           </div>
           <div className="p-6">

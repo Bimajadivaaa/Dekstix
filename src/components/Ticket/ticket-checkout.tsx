@@ -629,7 +629,7 @@ export function TicketCheckout({
               <div className="flex items-start gap-2">
                 <Info className="h-5 w-5 text-white/50 shrink-0 mt-0.5" />
                 <span className="text-white/70">
-                  Tickets are non-refundable and non-transferable
+                  Tickets are non-refundable
                 </span>
               </div>
               <div className="flex items-start gap-2">
@@ -641,7 +641,7 @@ export function TicketCheckout({
               <div className="flex items-start gap-2">
                 <Info className="h-5 w-5 text-white/50 shrink-0 mt-0.5" />
                 <span className="text-white/70">
-                  Your e-ticket will be sent to your email after purchase
+                  Your ticket will be available in your wallet after purchase
                 </span>
               </div>
               {isVIP && (
