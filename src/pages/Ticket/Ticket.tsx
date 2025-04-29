@@ -182,41 +182,6 @@ export default function TicketingSystem() {
           </div>
         )}
 
-        {selectedTicket && selectedEvent && (
-          <div>
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              className="mb-4 flex items-center gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back to tickets
-            </Button>
-
-            <TicketCheckout
-              selectedEvent={selectedEvent}
-              selectedTicket={selectedTicket}
-            />
-          </div>
-        )}
-
-        {selectedEvent && !selectedTicket && (
-          <div>
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              className="mb-4 flex items-center gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back to events
-            </Button>
-
-            <EventDetail
-              event={selectedEvent}
-              ticketTiers={ticketTiers}
-              onSelectTicket={handleSelectTicket}
-            />
-          </div>
-        )}
-
         {!address ? (
           <div className="flex flex-col items-center justify-center h-96">
             <Ticket className="h-12 w-12 mb-4 text-white/30" />
@@ -228,31 +193,39 @@ export default function TicketingSystem() {
             </p>
           </div>
         ) : (
-          <div>
-            <Tabs defaultValue="upcoming" className="mb-8">
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-4">
-                <TabsList className="bg-white/10 border border-white/20">
-                  <TabsTrigger
-                    value="upcoming"
-                    className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:font-semibold flex items-center gap-2"
-                  >
-                    <Calendar className="h-4 w-4" /> Upcoming Events
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="trending"
-                    className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:font-semibold flex items-center gap-2"
-                  >
-                    <TrendingUp className="h-4 w-4" /> Trending
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="recommended"
-                    className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:font-semibold flex items-center gap-2"
-                  >
-                    <Star className="h-4 w-4" /> Recommended
-                  </TabsTrigger>
-                </TabsList>
-
-                <div className="relative w-full sm:w-64">
+          <>
+            {selectedTicket && selectedEvent ? (
+              <div>
+                <Button
+                  variant="outline"
+                  onClick={handleBack}
+                  className="mb-4 flex items-center gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10"
+                >
+                  <ArrowLeft className="h-4 w-4" /> Back to tickets
+                </Button>
+                <TicketCheckout
+                  selectedEvent={selectedEvent}
+                  selectedTicket={selectedTicket}
+                />
+              </div>
+            ) : selectedEvent ? (
+              <div>
+                <Button
+                  variant="outline"
+                  onClick={handleBack}
+                  className="mb-4 flex items-center gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10"
+                >
+                  <ArrowLeft className="h-4 w-4" /> Back to events
+                </Button>
+                <EventDetail
+                  event={selectedEvent}
+                  ticketTiers={ticketTiers}
+                  onSelectTicket={handleSelectTicket}
+                />
+              </div>
+            ) : (
+              <div>
+                <div className="relative w-full sm:w-64 mb-6">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
                   <Input
                     type="text"
@@ -262,9 +235,7 @@ export default function TicketingSystem() {
                     className="w-full pl-10 bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:ring-white/20"
                   />
                 </div>
-              </div>
 
-              <TabsContent value="upcoming" className="space-y-4">
                 {isFetchingData ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[...Array(6)].map((_, index) => (
@@ -299,25 +270,9 @@ export default function TicketingSystem() {
                     </p>
                   </div>
                 )}
-              </TabsContent>
-
-              <TabsContent value="trending">
-                <div className="flex items-center justify-center h-40 border border-white/20 bg-white/5 rounded-md">
-                  <p className="text-white/50 flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" /> Trending events will appear here
-                  </p>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="recommended">
-                <div className="flex items-center justify-center h-40 border border-white/20 bg-white/5 rounded-md">
-                  <p className="text-white/50 flex items-center gap-2">
-                    <Star className="h-4 w-4" /> Recommended events based on your preferences
-                  </p>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
