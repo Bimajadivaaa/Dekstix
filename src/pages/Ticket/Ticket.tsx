@@ -12,7 +12,9 @@ import {
   TrendingUp,
   Star,
   Inbox,
-  Info
+  Info,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
@@ -34,9 +36,16 @@ export default function TicketingSystem() {
   const [formattedEvents, setFormattedEvents] = useState<Event[]>([]);
   const [useLocalData, setUseLocalData] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const EVENTS_PER_PAGE = 3;
   
   const { allEvents, isFetchingData } = useGetAllEvents();
   const { address } = useWallet();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Filter events based on search query
   const filteredEvents = formattedEvents.filter(event => 
@@ -45,6 +54,18 @@ export default function TicketingSystem() {
     event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.speakers.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredEvents.length / EVENTS_PER_PAGE);
+  const paginatedEvents = filteredEvents.slice(
+    (currentPage - 1) * EVENTS_PER_PAGE,
+    currentPage * EVENTS_PER_PAGE
+  );
+
+  // Reset to page 1 if searchQuery changes or filteredEvents changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filteredEvents.length]);
 
   useEffect(() => {
 
@@ -157,6 +178,11 @@ export default function TicketingSystem() {
     );
   };
 
+  if (!isMounted) {
+    // Bisa return null, atau skeleton loader jika mau
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-black bg-gradient-to-r from-white/10 to-white/20 text-white p-6">
       {/* Background Decorative Elements */}
@@ -238,23 +264,51 @@ export default function TicketingSystem() {
 
                 {isFetchingData ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[...Array(6)].map((_, index) => (
+                    {[...Array(EVENTS_PER_PAGE)].map((_, index) => (
                       <SkeletonCard key={index} />
                     ))}
                   </div>
                 ) : filteredEvents.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredEvents
-                      .filter(event => event.isActive !== false)
-                      .map((event) => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          onSelect={handleSelectEvent}
-                        />
-                      ))
-                    }
-                  </div>
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {paginatedEvents
+                        .filter(event => event.isActive !== false)
+                        .map((event) => (
+                          <EventCard
+                            key={event.id}
+                            event={event}
+                            onSelect={handleSelectEvent}
+                          />
+                        ))
+                      }
+                    </div>
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                      <div className="flex justify-center items-center gap-2 mt-8">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="border-white/20 bg-white/5 text-white hover:bg-white/10"
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <span className="text-white/80 text-sm mx-2">
+                          Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="border-white/20 bg-white/5 text-white hover:bg-white/10"
+                          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="flex items-center justify-center h-40 border border-white/20 bg-white/5 rounded-md">
                     <p className="text-white/50 flex items-center gap-2">
