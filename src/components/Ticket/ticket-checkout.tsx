@@ -187,10 +187,10 @@ export function TicketCheckout({
 
   // Mint & Buy VIP Ticket
   const handleMintVIPTicket = async () => {
-    if (!selectedTokenId) {
-      toast.error("Please select a ticket");
-      return;
-    }
+    // if (!selectedTokenId) {
+    //   toast.error("Please select a ticket");
+    //   return;
+    // }
     setIsMintingVIP(true);
     let ipfsImageUrl = imageIpfsUrl;
     try {

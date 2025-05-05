@@ -2,7 +2,7 @@
 
 import { useAccount } from "wagmi";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -69,6 +69,7 @@ import {
 import { QRCode } from "@/components/ui/qr-code";
 import { useGetTicketCode } from "@/lib/hooks/read/useGetTicketCode";
 import { TICKETING_ADDRESS } from "@/config/const";
+import { useGetTicketExpired } from "@/lib/hooks/read/useGetTicketExpired";
 
 const SEPOLIA_EXPLORER = "https://sepolia.etherscan.io";
 
@@ -139,6 +140,30 @@ const SkeletonTable = () => {
   );
 };
 
+// Create a separate component for the ticket status badge
+const TicketStatusBadge = ({ purchase }: { purchase: any }) => {
+  const { isExpired } = useGetTicketExpired(purchase.tokenId);
+
+  return (
+    <Badge
+      variant="outline"
+      className={
+        purchase.isExpired || isExpired
+          ? "bg-red-500/20 text-red-400 border-red-500/20"
+          : purchase.isUsed
+          ? "bg-green-500/20 text-green-400 border-green-500/20"
+          : "bg-white/10 text-white/70 border-white/20"
+      }
+    >
+      {purchase.isExpired || isExpired
+        ? "Expired"
+        : purchase.isUsed
+        ? "Ticket code generated"
+        : "Valid"}
+    </Badge>
+  );
+};
+
 export default function Profile() {
   const { address } = useWallet();
   const [copiedAddress, setCopiedAddress] = useState(false);
@@ -170,6 +195,16 @@ export default function Profile() {
   // Get ticket code for QR display
   const { ticketCode: qrTicketCode, isLoading: isLoadingQRCode } =
     useGetTicketCode(selectedTicketForQR || undefined);
+
+  // Get expiration status for each ticket
+  const expirationStatuses = useMemo(() => {
+    const statuses: { [key: string]: boolean } = {};
+    purchaseHistory.forEach((purchase) => {
+      const { isExpired } = useGetTicketExpired(purchase.tokenId);
+      statuses[purchase.tokenId.toString()] = isExpired || false;
+    });
+    return statuses;
+  }, [purchaseHistory]);
 
   // Set mounted state once client is ready
   useEffect(() => {
@@ -729,22 +764,7 @@ export default function Profile() {
                               {TICKET_TYPES[purchase.ticketType] || "Standard"}
                             </TableCell>
                             <TableCell>
-                              <Badge
-                                variant="outline"
-                                className={
-                                  purchase.isExpired
-                                    ? "bg-red-500/20 text-red-400 border-red-500/20"
-                                    : purchase.isUsed
-                                    ? "bg-green-500/20 text-green-400 border-green-500/20"
-                                    : "bg-white/10 text-white/70 border-white/20"
-                                }
-                              >
-                                {purchase.isExpired
-                                  ? "Expired"
-                                  : purchase.isUsed
-                                  ? "Ticket code generated"
-                                  : "Valid"}
-                              </Badge>
+                              <TicketStatusBadge purchase={purchase} />
                             </TableCell>
                             <TableCell className="text-right">
                               <DropdownMenu>

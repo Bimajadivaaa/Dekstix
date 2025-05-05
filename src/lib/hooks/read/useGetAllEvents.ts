@@ -5,9 +5,8 @@ export const useGetAllEvents = () => {
   const { data: allEvents, isPending: isFetchingData } = useReadContract({
     address: TICKETING_ADDRESS,
     abi: TICKETING_ABI,
-    functionName: "getAllEvents",
+    functionName: "getActiveEvents",
   });
-  console.log("allEvents", allEvents);
 
   return {
     allEvents,

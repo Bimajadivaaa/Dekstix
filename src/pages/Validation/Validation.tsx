@@ -378,7 +378,7 @@ export default function EnhancedValidation() {
           <Card className="bg-[#1a1a1a] border border-white/10">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-xl text-white">
-                NFT 
+                NFT Ticket Code Generator
               </CardTitle>
               <CardDescription className="text-white/70">
                 Connect your wallet to automatically detect your NFT tickets
@@ -654,14 +654,14 @@ export default function EnhancedValidation() {
                               >
                                 <div className="flex items-center gap-2">
                                   <Ticket className="h-4 w-4 text-white" />
-                                  <span className="text-sm font-mono font-medium text-white">
+                                  <span className="text-sm font-mono font-medium text-white truncate">
                                     {ticket.eventName} Ticket
                                   </span>
                                   <Badge
                                     variant="outline"
                                     className="ml-auto bg-white/20 border-white/20 text-white/80 hover:bg-transparent"
                                   >
-                                    <span className="text-xs font-medium text-white">
+                                    <span className="text-xs font-medium text-white truncate">
                                       {TICKET_TYPES[ticket.ticketType] ||
                                         "Standard Ticket"}
                                     </span>
