@@ -5,7 +5,7 @@ export const useGetTicketExpired = (tokenId?: bigint | number) => {
     // Convert tokenId to bigint if it's a number
     const normalizedTokenId = tokenId ? BigInt(tokenId) : undefined;
 
-    // Check if ticket is expired
+    // Use the query object to control when the hook runs
     const {
         data: isExpired,
         isLoading: isLoadingStatus,
@@ -16,6 +16,9 @@ export const useGetTicketExpired = (tokenId?: bigint | number) => {
         abi: TICKETING_ABI,
         functionName: "isTicketCodeExpired",
         args: normalizedTokenId ? [normalizedTokenId] : [],
+        query: {
+            enabled: !!normalizedTokenId
+        }
     });
 
     return {

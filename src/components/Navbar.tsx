@@ -4,6 +4,9 @@ import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useNetworkValidation } from "@/lib/hooks/use-network-validation";
+import { NetworkWarning } from "@/components/NetworkWarning";
+import { sepolia } from "wagmi/chains";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -23,11 +26,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, Ticket, QrCode, User, Home, Sparkles, ChevronRight, Wallet } from "lucide-react";
+import { Menu, Ticket, QrCode, User, Home, Sparkles, ChevronRight, Wallet, AlertTriangle } from "lucide-react";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const { isWrongNetwork } = useNetworkValidation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,16 +45,17 @@ export function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
-        isScrolled 
-          ? "bg-gradient-to-br from-black via-[#0a0a0a] to-black/90 shadow-sm backdrop-blur-md" 
-          : "bg-gradient-to-br from-black via-[#0a0a0a] to-black"
-      )}
-    >
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+    <>
+      <header
+        className={cn(
+          "sticky top-0 z-50 w-full transition-all duration-300",
+          isScrolled 
+            ? "bg-gradient-to-br from-black via-[#0a0a0a] to-black/90 shadow-sm backdrop-blur-md" 
+            : "bg-gradient-to-br from-black via-[#0a0a0a] to-black"
+        )}
+      >
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-500 p-0.5">
@@ -96,7 +101,7 @@ export function Navbar() {
                     )}
                   >
                     <Ticket className="h-4 w-4" />
-                    Tickets
+                    Purchase Tickets
                   </Button>
                 </Link>
               </NavigationMenuItem>
@@ -168,6 +173,22 @@ export function Navbar() {
                           >
                             Connect Wallet
                           </Button>
+                        );
+                      }
+
+                      if (chain.id !== sepolia.id) {
+                        return (
+                          <div className="flex items-center gap-2">
+                            <Button
+                              onClick={openChainModal}
+                              variant="outline"
+                              size="sm"
+                              className="h-9 px-3 rounded-full border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                            >
+                              <AlertTriangle className="h-4 w-4 mr-1.5" />
+                              Wrong Network
+                            </Button>
+                          </div>
                         );
                       }
 
@@ -247,7 +268,7 @@ export function Navbar() {
                       active={isActive("/Ticket/Ticket")}
                       icon={<Ticket className="h-4 w-4" />}
                     >
-                      Tickets
+                      Purchase Tickets
                     </MobileNavLink>
                     <MobileNavLink 
                       href="/Validation/Validation" 
@@ -305,6 +326,21 @@ export function Navbar() {
                                   );
                                 }
 
+                                if (chain.id !== sepolia.id) {
+                                  return (
+                                    <div className="space-y-2">
+                                      <Button
+                                        onClick={openChainModal}
+                                        variant="outline"
+                                        className="w-full justify-start gap-1.5 border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                                      >
+                                        <AlertTriangle className="h-4 w-4" />
+                                        Wrong Network - Switch to Sepolia
+                                      </Button>
+                                    </div>
+                                  );
+                                }
+
                                 return (
                                   <div className="space-y-2">
                                     <Button
@@ -351,6 +387,10 @@ export function Navbar() {
         </div>
       </div>
     </header>
+
+    {/* Wrong Network Warning Banner */}
+    <NetworkWarning />
+    </>
   );
 }
 

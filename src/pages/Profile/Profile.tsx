@@ -142,7 +142,15 @@ const SkeletonTable = () => {
 
 // Create a separate component for the ticket status badge
 const TicketStatusBadge = ({ purchase }: { purchase: any }) => {
-  const { isExpired } = useGetTicketExpired(purchase.tokenId);
+  const { isExpired } = useGetTicketExpired(purchase?.tokenId);
+
+  if (!purchase?.tokenId) {
+    return (
+      <Badge variant="outline" className="bg-white/10 text-white/70 border-white/20">
+        Loading...
+      </Badge>
+    );
+  }
 
   return (
     <Badge
@@ -196,15 +204,6 @@ export default function Profile() {
   const { ticketCode: qrTicketCode, isLoading: isLoadingQRCode } =
     useGetTicketCode(selectedTicketForQR || undefined);
 
-  // Get expiration status for each ticket
-  const expirationStatuses = useMemo(() => {
-    const statuses: { [key: string]: boolean } = {};
-    purchaseHistory.forEach((purchase) => {
-      const { isExpired } = useGetTicketExpired(purchase.tokenId);
-      statuses[purchase.tokenId.toString()] = isExpired || false;
-    });
-    return statuses;
-  }, [purchaseHistory]);
 
   // Set mounted state once client is ready
   useEffect(() => {

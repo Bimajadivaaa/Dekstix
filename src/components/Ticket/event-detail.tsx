@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Event, TicketTier } from "@/lib/type";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { useGetTicketPrice } from "@/lib/hooks/read/useGetTicketPrice";
+import { useNetworkGuard } from "@/lib/hooks/use-network-guard";
 import Image from "next/image";
 import { useEthPrice } from "@/lib/hooks/use-eth-price";
 
@@ -20,6 +21,8 @@ export function EventDetail({
   ticketTiers,
   onSelectTicket,
 }: EventDetailProps) {
+  const { isDisabled, isWrongNetwork, switchNetwork, disabledReason } = useNetworkGuard();
+  
   const { formattedPrice: standardPrice, isFetchingData: loadingStandard } =
     useGetTicketPrice(event.id, 0);
   const { formattedPrice: premiumPrice, isFetchingData: loadingPremium } =
@@ -105,7 +108,7 @@ export function EventDetail({
                   Availability
                 </h3>
                 <p className="text-white">
-                  {event.remaining} of {event.capacity} tickets remaining
+                  {event.remaining} of {event.capacity} NFT tickets Available
                 </p>
               </div>
 
@@ -199,6 +202,13 @@ export function EventDetail({
                 <Button disabled className="w-full bg-white/50 text-white">
                   Sold Out
                 </Button>
+              )}
+              
+              {/* Show network warning but don't disable purchase buttons */}
+              {isWrongNetwork && (
+                <p className="text-amber-400 text-xs mt-2 text-center">
+                  ⚠️ Wrong network detected. Please ensure you're on Sepolia before purchasing.
+                </p>
               )}
             </Card>
           ))}
