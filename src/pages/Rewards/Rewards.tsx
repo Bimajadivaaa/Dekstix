@@ -26,7 +26,6 @@ import { useAccount, useChainId } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
 import { toast } from "sonner";
 import { useGetMyTicket } from "@/lib/hooks/read/useGetMyTicket";
-import { useGetHistoryPurchase } from "@/lib/hooks/read/useGetHistoryPurchase";
 import { useMintDekstixToken } from "@/lib/hooks/write/useMintDekstixToken";
 import nftImage from "../../public/Images/nft-ticket.png";
 
@@ -56,8 +55,6 @@ interface TokenReward {
 interface UserStats {
   totalNFTs: number;
   uniqueCollections: number;
-  totalTokensEarned: number;
-  claimedRewards: number;
 }
 
 export default function RewardsPage() {
@@ -78,6 +75,17 @@ export default function RewardsPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Initialize mint hook
+  const { handleMintTokens, isMintSuccess } = useMintDekstixToken();
+
+  // Clean up claiming state when minting completes
+  useEffect(() => {
+    if (isMintSuccess) {
+      // Clear all claiming states when transaction succeeds
+      setClaimingRewards(new Set());
+    }
+  }, [isMintSuccess]);
 
 
   // Function to fetch NFT metadata from IPFS
@@ -124,8 +132,6 @@ export default function RewardsPage() {
   const userStats: UserStats = {
     totalNFTs: tickets.length,
     uniqueCollections: new Set(tickets.map(ticket => ticket.eventName)).size,
-    totalTokensEarned: 1850, // This would be calculated from claimed rewards in real app
-    claimedRewards: 5 // This would be tracked from blockchain events
   };
 
   // Group tickets by event and ticket type for collection view
@@ -182,9 +188,6 @@ export default function RewardsPage() {
       category: getCategory(group.ticketType)
     };
   });
-
-  // Initialize mint hook
-  const { handleMintTokens, isMinting } = useMintDekstixToken();
 
   // Token rewards based on NFT collection milestones
   const getTokenRewards = (): TokenReward[] => {
@@ -395,7 +398,7 @@ export default function RewardsPage() {
         ) : (
           <>
             {/* User Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
@@ -419,34 +422,6 @@ export default function RewardsPage() {
                     <div>
                       <p className="text-white/70 text-sm">Collections</p>
                       <p className="text-2xl font-bold text-white">{userStats.uniqueCollections}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/5 border-white/10">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-yellow-500/20">
-                      <Coins className="h-5 w-5 text-yellow-400" />
-                    </div>
-                    <div>
-                      <p className="text-white/70 text-sm">DEKSTIX Earned</p>
-                      <p className="text-2xl font-bold text-white">{userStats.totalTokensEarned}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/5 border-white/10">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-green-500/20">
-                      <CheckCircle className="h-5 w-5 text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-white/70 text-sm">Rewards Claimed</p>
-                      <p className="text-2xl font-bold text-white">{userStats.claimedRewards}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -498,8 +473,8 @@ export default function RewardsPage() {
                 variant={selectedTab === "collection" ? "default" : "outline"}
                 onClick={() => setSelectedTab("collection")}
                 className={selectedTab === "collection" 
-                  ? "bg-white text-black" 
-                  : "border-white/20 bg-white/5 text-white hover:bg-white/10"
+                  ? "bg-white text-black hover:bg-gray-100" 
+                  : "border-white/30 bg-white/5 text-white hover:bg-white/20 hover:border-white/50 hover:text-white transition-all duration-200"
                 }
               >
                 <Package className="h-4 w-4 mr-2" />
@@ -509,8 +484,8 @@ export default function RewardsPage() {
                 variant={selectedTab === "rewards" ? "default" : "outline"}
                 onClick={() => setSelectedTab("rewards")}
                 className={selectedTab === "rewards" 
-                  ? "bg-white text-black" 
-                  : "border-white/20 bg-white/5 text-white hover:bg-white/10"
+                  ? "bg-white text-black hover:bg-gray-100" 
+                  : "border-white/30 bg-white/5 text-white hover:bg-white/20 hover:border-white/50 hover:text-white transition-all duration-200"
                 }
               >
                 <Coins className="h-4 w-4 mr-2" />
