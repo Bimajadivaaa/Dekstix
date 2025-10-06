@@ -55,6 +55,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import nftImage from "../../public/Images/nft-ticket.png";
+import karatonImage from "../../public/Images/karaton.png";
 import { useGetMyTicket } from "@/lib/hooks/read/useGetMyTicket";
 import { useGetHistoryPurchase } from "@/lib/hooks/read/useGetHistoryPurchase";
 import { useWallet } from "@/lib/hooks/use-wallet";
@@ -339,7 +340,18 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-[#0a0a0a] to-black text-white pb-16">
       {/* Profile Header */}
-      <div className="bg-gradient-to-r from-white/10 to-white/20 pt-12 pb-24 px-4 relative overflow-hidden">
+      <div 
+        className="bg-gradient-to-r from-white/10 to-white/20 pt-12 pb-24 px-4 relative overflow-hidden"
+        style={{
+          backgroundImage: `url(${karatonImage.src})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {/* Background overlay */}
+        <div className="absolute inset-0 bg-black/30"></div>
+        
         {/* Background patterns */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute right-0 bottom-0 w-80 h-80 bg-white/10 rounded-full transform translate-x-1/3 translate-y-1/3"></div>
