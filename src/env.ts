@@ -1,5 +1,5 @@
 import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { NEVER, z } from "zod";
 
 export const env = createEnv({
   /*
@@ -18,6 +18,7 @@ export const env = createEnv({
     NEXT_PUBLIC_PINATA_API_KEY: z.string().min(1),
     NEXT_PUBLIC_PINATA_SECRET_API_KEY: z.string().min(1),
     NEXT_PUBLIC_PINATA_JWT_TOKEN: z.string().min(1),
+    NEXT_PUBLIC_DESKTIX_TOKEN: z.string().min(1),
   },
   /*
    * Due to how Next.js bundles environment variables on Edge and Client,
@@ -32,5 +33,6 @@ export const env = createEnv({
     NEXT_PUBLIC_PINATA_API_KEY: process.env.NEXT_PUBLIC_PINATA_API_KEY,
     NEXT_PUBLIC_PINATA_SECRET_API_KEY: process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY,
     NEXT_PUBLIC_PINATA_JWT_TOKEN: process.env.NEXT_PUBLIC_PINATA_JWT_TOKEN,
+    NEXT_PUBLIC_DESKTIX_TOKEN: process.env.NEXT_PUBLIC_DESKTIX_TOKEN,
   },
 });

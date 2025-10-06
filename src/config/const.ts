@@ -3,6 +3,8 @@ import { env } from "@/env";
 // CA
 export const TICKETING_ADDRESS =
   env.NEXT_PUBLIC_TICKETING_CONTRACT as `0x${string}`;
+export const DEKSTIX_TOKEN_ADDRESS =
+  env.NEXT_PUBLIC_DESKTIX_TOKEN as `0x${string}`;
 
 export const PINATA_API_KEY = env.NEXT_PUBLIC_PINATA_API_KEY;
 export const PINATA_SECRET_KEY = env.NEXT_PUBLIC_PINATA_SECRET_API_KEY;

@@ -27,6 +27,7 @@ import { baseSepolia } from "wagmi/chains";
 import { toast } from "sonner";
 import { useGetMyTicket } from "@/lib/hooks/read/useGetMyTicket";
 import { useGetHistoryPurchase } from "@/lib/hooks/read/useGetHistoryPurchase";
+import { useMintDekstixToken } from "@/lib/hooks/write/useMintDekstixToken";
 import nftImage from "../../public/Images/nft-ticket.png";
 
 interface NFTCollection {
@@ -60,30 +61,24 @@ interface UserStats {
 }
 
 export default function RewardsPage() {
-  const [isMounted, setIsMounted] = useState(false);
   const [selectedTab, setSelectedTab] = useState<"collection" | "rewards">("collection");
   const [nftMetadata, setNftMetadata] = useState<{ [key: string]: any }>({});
+  const [isMounted, setIsMounted] = useState(false);
+  const [claimingRewards, setClaimingRewards] = useState<Set<number>>(new Set());
   
   const { address } = useWallet();
   const { isConnected } = useAccount();
   const chainId = useChainId();
   
   // Get real NFT data from hooks
-  const {
-    tickets = [],
-    isLoading: isLoadingTickets,
-  } = useGetMyTicket();
-
-  const {
-    purchaseHistory = [],
-    isLoading: isLoadingHistory,
-  } = useGetHistoryPurchase();
+  const { tickets = [], isLoading: isLoadingTickets } = useGetMyTicket();
   
   const isWrongNetwork = isConnected && chainId !== baseSepolia.id;
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
 
   // Function to fetch NFT metadata from IPFS
   const fetchNFTMetadata = async (tokenURI: string, tokenId: string) => {
@@ -188,71 +183,92 @@ export default function RewardsPage() {
     };
   });
 
-  // Mock token rewards based on NFT collection milestones
-  const tokenRewards: TokenReward[] = [
-    {
-      id: 1,
-      title: "Collector Starter Pack",
-      description: "Welcome bonus for new collectors",
-      tokenAmount: 100,
-      tokenSymbol: "DEKSTIX",
-      nftRequirement: 5,
-      status: "claimed",
-      icon: <Gift className="h-5 w-5" />
-    },
-    {
-      id: 2,
-      title: "Active Collector Reward",
-      description: "Reward for dedicated collectors",
-      tokenAmount: 250,
-      tokenSymbol: "DEKSTIX",
-      nftRequirement: 10,
-      status: "claimed",
-      icon: <Package className="h-5 w-5" />
-    },
-    {
-      id: 3,
-      title: "Serious Collector Bonus",
-      description: "For collectors with substantial holdings",
-      tokenAmount: 500,
-      tokenSymbol: "DEKSTIX",
-      nftRequirement: 25,
-      status: "available",
-      icon: <Award className="h-5 w-5" />
-    },
-    {
-      id: 4,
-      title: "Elite Collector Tier",
-      description: "Premium rewards for elite collectors",
-      tokenAmount: 1000,
-      tokenSymbol: "DEKSTIX",
-      nftRequirement: 50,
-      status: "locked",
-      icon: <Trophy className="h-5 w-5" />
-    },
-    {
-      id: 5,
-      title: "Legendary Collector Status",
-      description: "Ultimate reward for legendary collectors",
-      tokenAmount: 2500,
-      tokenSymbol: "DEKSTIX",
-      nftRequirement: 100,
-      status: "locked",
-      expiresAt: "2025-12-31",
-      icon: <Star className="h-5 w-5" />
-    },
-    {
-      id: 6,
-      title: "VIP Collection Bonus",
-      description: "Special reward for VIP NFT holders",
-      tokenAmount: 300,
-      tokenSymbol: "DEKSTIX",
-      nftRequirement: 3,
-      nftType: "VIP Experience Token",
-      status: "locked",
-      icon: <Sparkles className="h-5 w-5" />
+  // Initialize mint hook
+  const { handleMintTokens, isMinting } = useMintDekstixToken();
+
+  // Token rewards based on NFT collection milestones
+  const getTokenRewards = (): TokenReward[] => {
+    const totalNFTs = tickets.length;
+    
+    // Check for VIP tickets
+    // Standard enum: 0=STANDARD, 1=PREMIUM, 2=VIP
+    const hasVIPTicket = tickets.some(ticket => ticket.ticketType === 2);
+    
+    // Debug logging (client-side only)
+    if (isMounted && tickets.length > 0) {
+      console.log("Debug - All tickets:", tickets);
+      console.log("Debug - Ticket types:", tickets.map(t => ({ ticketType: t.ticketType, eventName: t.eventName })));
+      console.log("Debug - VIP Detection Result:", hasVIPTicket);
+      console.log("Debug - VIP tickets (type 2):", tickets.filter(t => t.ticketType === 2));
     }
-  ];
+    
+    return [
+      {
+        id: 1,
+        title: "First Collector Reward",
+        description: "Welcome bonus for your first NFT",
+        tokenAmount: 50,
+        tokenSymbol: "DEKSTIX",
+        nftRequirement: 1,
+        status: totalNFTs >= 1 ? "available" : "locked",
+        icon: <Gift className="h-5 w-5" />
+      },
+      {
+        id: 2,
+        title: "VIP Holder Exclusive",
+        description: "Special reward for VIP ticket holders",
+        tokenAmount: 1000,
+        tokenSymbol: "DEKSTIX",
+        nftRequirement: 1,
+        nftType: "VIP",
+        status: hasVIPTicket ? "available" : "locked",
+        icon: <Sparkles className="h-5 w-5" />
+      },
+      {
+        id: 3,
+        title: "Active Collector Reward",
+        description: "Reward for dedicated collectors",
+        tokenAmount: 250,
+        tokenSymbol: "DEKSTIX",
+        nftRequirement: 5,
+        status: totalNFTs >= 5 ? "available" : "locked",
+        icon: <Package className="h-5 w-5" />
+      },
+      {
+        id: 4,
+        title: "Serious Collector Bonus",
+        description: "For collectors with substantial holdings",
+        tokenAmount: 500,
+        tokenSymbol: "DEKSTIX",
+        nftRequirement: 10,
+        status: totalNFTs >= 10 ? "available" : "locked",
+        icon: <Award className="h-5 w-5" />
+      },
+      {
+        id: 5,
+        title: "Elite Collector Tier",
+        description: "Premium rewards for elite collectors",
+        tokenAmount: 1000,
+        tokenSymbol: "DEKSTIX",
+        nftRequirement: 25,
+        status: totalNFTs >= 25 ? "available" : "locked",
+        icon: <Trophy className="h-5 w-5" />
+      },
+      {
+        id: 6,
+        title: "Legendary Collector Status",
+        description: "Ultimate reward for legendary collectors",
+        tokenAmount: 2500,
+        tokenSymbol: "DEKSTIX",
+        nftRequirement: 50,
+        status: totalNFTs >= 50 ? "available" : "locked",
+        expiresAt: "2025-12-31",
+        icon: <Star className="h-5 w-5" />
+      }
+    ];
+  };
+
+  const tokenRewards = getTokenRewards();
 
   const getRarityColor = (rarity: NFTCollection["rarity"]) => {
     switch (rarity) {
@@ -283,9 +299,14 @@ export default function RewardsPage() {
     }
   };
 
-  const handleClaimTokenReward = (rewardId: number) => {
+  const handleClaimTokenReward = async (rewardId: number) => {
     if (isWrongNetwork) {
       toast.error("Please switch to Base Sepolia network to claim rewards");
+      return;
+    }
+
+    if (!address) {
+      toast.error("Please connect your wallet first");
       return;
     }
 
@@ -298,23 +319,52 @@ export default function RewardsPage() {
     }
 
     // Check NFT requirement
-    if (reward.nftType) {
-      const specificCollection = nftCollections.find(c => c.name === reward.nftType);
-      if (!specificCollection || specificCollection.owned < reward.nftRequirement) {
-        toast.error(`You need ${reward.nftRequirement} ${reward.nftType} NFTs to claim this reward`);
+    if (reward.nftType === "VIP") {
+      // Special check for VIP tickets (ticketType 2 = VIP)
+      const hasVIPTicket = tickets.some(ticket => ticket.ticketType === 2);
+      if (isMounted) {
+        console.log("Debug - Claiming VIP reward - hasVIPTicket:", hasVIPTicket);
+      }
+      if (!hasVIPTicket) {
+        toast.error("You need to hold at least 1 VIP ticket to claim this reward.");
         return;
       }
     } else {
-      if (userStats.totalNFTs < reward.nftRequirement) {
-        toast.error(`You need ${reward.nftRequirement} NFTs to claim this reward`);
+      // Regular NFT count requirement
+      const totalNFTs = tickets.length;
+      if (totalNFTs < reward.nftRequirement) {
+        toast.error(`You need ${reward.nftRequirement} NFTs to claim this reward. You currently have ${totalNFTs} NFTs.`);
         return;
       }
     }
 
-    // Simulate claiming
-    toast.success(`Successfully claimed ${reward.tokenAmount} ${reward.tokenSymbol} tokens!`);
+    try {
+      // Add this reward to claiming set
+      setClaimingRewards(prev => new Set(prev).add(rewardId));
+      
+      // Mint DEKSTIX tokens to the user's address
+      await handleMintTokens(address, reward.tokenAmount.toString());
+      
+      // Remove from claiming set on success/failure
+      setClaimingRewards(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(rewardId);
+        return newSet;
+      });
+    } catch (error) {
+      console.error("Failed to claim reward:", error);
+      toast.error("Failed to claim reward. Please try again.");
+      
+      // Remove from claiming set on error
+      setClaimingRewards(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(rewardId);
+        return newSet;
+      });
+    }
   };
 
+  // Prevent hydration mismatch
   if (!isMounted) {
     return null;
   }
@@ -593,9 +643,11 @@ export default function RewardsPage() {
                         <div className="flex items-center justify-between">
                           <span className="text-white/70">Your Progress:</span>
                           <span className="text-white/90 text-sm">
-                            {reward.nftType 
-                              ? `${nftCollections.find(c => c.name === reward.nftType)?.owned || 0}/${reward.nftRequirement}`
-                              : `${userStats.totalNFTs}/${reward.nftRequirement}`
+                            {reward.nftType === "VIP" 
+                              ? `${tickets.filter(t => t.ticketType === 2).length}/${reward.nftRequirement}`
+                              : reward.nftType 
+                                ? `${nftCollections.find(c => c.name === reward.nftType)?.owned || 0}/${reward.nftRequirement}`
+                                : `${userStats.totalNFTs}/${reward.nftRequirement}`
                             }
                           </span>
                         </div>
@@ -614,16 +666,20 @@ export default function RewardsPage() {
                           <div className="flex justify-between text-xs">
                             <span className="text-white/70">Progress</span>
                             <span className="text-white/70">
-                              {Math.min(100, reward.nftType 
-                                ? Math.round((nftCollections.find(c => c.name === reward.nftType)?.owned || 0) / reward.nftRequirement * 100)
-                                : Math.round(userStats.totalNFTs / reward.nftRequirement * 100)
+                              {Math.min(100, reward.nftType === "VIP"
+                                ? Math.round(tickets.filter(t => t.ticketType === 2).length / reward.nftRequirement * 100)
+                                : reward.nftType 
+                                  ? Math.round((nftCollections.find(c => c.name === reward.nftType)?.owned || 0) / reward.nftRequirement * 100)
+                                  : Math.round(userStats.totalNFTs / reward.nftRequirement * 100)
                               )}%
                             </span>
                           </div>
                           <Progress 
-                            value={Math.min(100, reward.nftType 
-                              ? (nftCollections.find(c => c.name === reward.nftType)?.owned || 0) / reward.nftRequirement * 100
-                              : userStats.totalNFTs / reward.nftRequirement * 100
+                            value={Math.min(100, reward.nftType === "VIP"
+                              ? tickets.filter(t => t.ticketType === 2).length / reward.nftRequirement * 100
+                              : reward.nftType 
+                                ? (nftCollections.find(c => c.name === reward.nftType)?.owned || 0) / reward.nftRequirement * 100
+                                : userStats.totalNFTs / reward.nftRequirement * 100
                             )} 
                             className="h-2" 
                           />
@@ -631,15 +687,12 @@ export default function RewardsPage() {
 
                         <Button
                           onClick={() => handleClaimTokenReward(reward.id)}
-                          disabled={reward.status !== "available"}
+                          disabled={reward.status !== "available" || claimingRewards.has(reward.id)}
                           className="w-full mt-4"
                           variant={reward.status === "available" ? "default" : "outline"}
                         >
-                          {reward.status === "claimed" ? (
-                            <>
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Claimed
-                            </>
+                          {claimingRewards.has(reward.id) ? (
+                            "Claiming..."
                           ) : reward.status === "locked" ? (
                             "Requirements Not Met"
                           ) : (
