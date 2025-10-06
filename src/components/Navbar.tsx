@@ -26,7 +26,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, Ticket, QrCode, User, Home, Sparkles, ChevronRight, Wallet, AlertTriangle } from "lucide-react";
+import { Menu, Ticket, QrCode, User, Home, Sparkles, ChevronRight, Wallet, AlertTriangle, Gift } from "lucide-react";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -117,6 +117,21 @@ export function Navbar() {
                   >
                     <QrCode className="h-4 w-4" />
                     Generate Ticket Code
+                  </Button>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/Rewards/Rewards" legacyBehavior passHref>
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "gap-1.5 rounded-full border-white/20 bg-white/5 text-white",
+                      isActive("/Rewards/Rewards") && "bg-white text-black"
+                    )}
+                  >
+                    <Gift className="h-4 w-4" />
+                    Rewards
                   </Button>
                 </Link>
               </NavigationMenuItem>
@@ -276,6 +291,13 @@ export function Navbar() {
                       icon={<QrCode className="h-4 w-4" />}
                     >
                       Generate Ticket Code
+                    </MobileNavLink>
+                    <MobileNavLink 
+                      href="/Rewards/Rewards" 
+                      active={isActive("/Rewards/Rewards")}
+                      icon={<Gift className="h-4 w-4" />}
+                    >
+                      Rewards
                     </MobileNavLink>
                     <MobileNavLink 
                       href="/Profile/Profile" 
