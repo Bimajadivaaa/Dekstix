@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 import React from "react";
 import { toast } from "sonner";
 
-const SEPOLIA_EXPLORER = "https://sepolia.etherscan.io/tx/";
+const BASE_SEPOLIA_EXPLORER = "https://sepolia.basescan.org/tx/";
 
 export const useBuyTicket = () => {
   const {
@@ -59,12 +59,12 @@ export const useBuyTicket = () => {
         description: React.createElement(
           "a",
           {
-            href: `${SEPOLIA_EXPLORER}${txHash}`,
+            href: `${BASE_SEPOLIA_EXPLORER}${txHash}`,
             target: "_blank",
             rel: "noopener noreferrer",
             className: "text-blue-500 underline",
           },
-          "View Transaction on Sepolia Explorer"
+          "View Transaction on Base Sepolia Explorer"
         ),
       });
       resetWriteContract();

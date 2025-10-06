@@ -16,7 +16,7 @@ import { Event } from "../../lib/type";
 import { toast } from "sonner";
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
-import { sepolia } from "wagmi/chains";
+import { baseSepolia } from "wagmi/chains";
 
 interface EventCardProps {
   event: Event;
@@ -59,7 +59,7 @@ export function EventCard({ event, onSelect }: EventCardProps) {
 
   // ---- Derived states ----
   const isWrongNetwork = useMemo(
-    () => !!walletChainId && walletChainId !== sepolia.id,
+    () => !!walletChainId && walletChainId !== baseSepolia.id,
     [walletChainId]
   );
 
@@ -68,10 +68,10 @@ export function EventCard({ event, onSelect }: EventCardProps) {
   const handleFixNetwork = () => {
     if (isWrongNetwork) {
       try {
-        switchChain({ chainId: sepolia.id });
+        switchChain({ chainId: baseSepolia.id });
       } catch {
         // fallback manual kalau wallet tidak support programmatic switch
-        toast.error("Please switch to Sepolia in your wallet");
+        toast.error("Please switch to Base Sepolia in your wallet");
       }
     }
   };
@@ -81,7 +81,7 @@ export function EventCard({ event, onSelect }: EventCardProps) {
       if (!isConnected) {
         toast.error("Please connect your wallet first");
       } else if (isWrongNetwork) {
-        toast.error("Please switch to Sepolia network to view tickets");
+        toast.error("Please switch to Base Sepolia network to view tickets");
       }
       return;
     }
@@ -162,11 +162,12 @@ export function EventCard({ event, onSelect }: EventCardProps) {
           } disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed`}
           onClick={isWrongNetwork ? handleFixNetwork : handleClick}
           disabled={isDisabled}
+          
           title={
             isDisabled
               ? !isConnected
                 ? "Please connect your wallet"
-                : "Please switch to Sepolia network"
+                : "Please switch to Base Sepolia network"
               : ""
           }
         >
@@ -182,7 +183,7 @@ export function EventCard({ event, onSelect }: EventCardProps) {
 
         {isWrongNetwork && (
           <p className="text-red-400 text-xs text-center">
-            Please switch to Sepolia network to view tickets
+            Please switch to Base Sepolia network to view tickets
           </p>
         )}
       </CardFooter>

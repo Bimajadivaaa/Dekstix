@@ -48,7 +48,7 @@ import { QRCode } from "@/components/ui/qr-code";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { useDisconnect, useAccount, useChainId } from "wagmi";
-import { sepolia } from "wagmi/chains";
+import { baseSepolia } from "wagmi/chains";
 
 // Define the ticket type based on the contract's TicketWithNFT struct
 type Ticket = {
@@ -106,7 +106,7 @@ export default function EnhancedValidation() {
   const { address, isConnected } = useWallet();
 
   // Network validation logic
-  const isWrongNetwork = isConnected && chainId !== sepolia.id;
+  const isWrongNetwork = isConnected && chainId !== baseSepolia.id;
   const isDisabled = !isConnected || isWrongNetwork;
 
   // Use the ticket hook to get NFT tickets

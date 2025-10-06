@@ -23,7 +23,7 @@ import {
 import { useState, useEffect } from "react";
 import { useWallet } from "@/lib/hooks/use-wallet";
 import { useAccount, useChainId } from "wagmi";
-import { sepolia } from "wagmi/chains";
+import { baseSepolia } from "wagmi/chains";
 import { toast } from "sonner";
 import { useGetMyTicket } from "@/lib/hooks/read/useGetMyTicket";
 import { useGetHistoryPurchase } from "@/lib/hooks/read/useGetHistoryPurchase";
@@ -79,7 +79,7 @@ export default function RewardsPage() {
     isLoading: isLoadingHistory,
   } = useGetHistoryPurchase();
   
-  const isWrongNetwork = isConnected && chainId !== sepolia.id;
+  const isWrongNetwork = isConnected && chainId !== baseSepolia.id;
 
   useEffect(() => {
     setIsMounted(true);
@@ -285,7 +285,7 @@ export default function RewardsPage() {
 
   const handleClaimTokenReward = (rewardId: number) => {
     if (isWrongNetwork) {
-      toast.error("Please switch to Sepolia network to claim rewards");
+      toast.error("Please switch to Base Sepolia network to claim rewards");
       return;
     }
 

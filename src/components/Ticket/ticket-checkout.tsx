@@ -28,6 +28,7 @@ import { useGenerateTicketVIPImage } from "@/lib/hooks/write/useGenerateTicketVI
 import { toast } from "sonner";
 import { useEthPrice } from "@/lib/hooks/use-eth-price";
 import { useBuyVIPTicket } from "@/lib/hooks/write/useBuyVIPTicket";
+import { PurchaseConfirmationDialog } from "./purchase-confirmation-dialog";
 import { uploadFileToPinata } from "@/lib/hooks/pinata";
 import { uploadJSONToPinata } from "@/lib/hooks/pinata";
 
@@ -48,6 +49,7 @@ export function TicketCheckout({
   const [imageIpfsUrl, setImageIpfsUrl] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [metadataIpfsUrl, setMetadataIpfsUrl] = useState<string | null>(null);
+  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
 
   // Get ticket type index
   const getTicketTypeIndex = (): number => {
@@ -152,6 +154,13 @@ export function TicketCheckout({
       return;
     }
 
+    // Show confirmation dialog instead of immediate purchase
+    setShowConfirmationDialog(true);
+  };
+
+  const handleConfirmPurchase = async () => {
+    if (!selectedTokenId) return;
+
     try {
       // Convert price to string for ethers parsing
       const priceInEth = selectedTicket.price.toString();
@@ -185,12 +194,13 @@ export function TicketCheckout({
     }
   };
 
-  // Mint & Buy VIP Ticket
+  // Show VIP confirmation dialog
   const handleMintVIPTicket = async () => {
-    // if (!selectedTokenId) {
-    //   toast.error("Please select a ticket");
-    //   return;
-    // }
+    setShowConfirmationDialog(true);
+  };
+
+  // Actual VIP purchase after confirmation
+  const handleConfirmVIPPurchase = async () => {
     setIsMintingVIP(true);
     let ipfsImageUrl = imageIpfsUrl;
     try {
@@ -657,6 +667,18 @@ export function TicketCheckout({
           </CardContent>
         </Card>
       </div>
+
+      {/* Purchase Confirmation Dialog */}
+      <PurchaseConfirmationDialog
+        open={showConfirmationDialog}
+        onOpenChange={setShowConfirmationDialog}
+        onConfirm={isVIP ? handleConfirmVIPPurchase : handleConfirmPurchase}
+        selectedTicket={selectedTicket}
+        selectedEvent={selectedEvent}
+        selectedTokenId={selectedTokenId ? Number(selectedTokenId) : undefined}
+        isVip={isVIP}
+        isLoading={isPurchasing || isMintingVIP}
+      />
     </div>
   );
 }

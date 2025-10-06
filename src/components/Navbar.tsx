@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useNetworkValidation } from "@/lib/hooks/use-network-validation";
 import { NetworkWarning } from "@/components/NetworkWarning";
-import { sepolia } from "wagmi/chains";
+import { baseSepolia } from "wagmi/chains";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -191,7 +191,7 @@ export function Navbar() {
                         );
                       }
 
-                      if (chain.id !== sepolia.id) {
+                      if (chain.id !== baseSepolia.id) {
                         return (
                           <div className="flex items-center gap-2">
                             <Button
@@ -348,7 +348,7 @@ export function Navbar() {
                                   );
                                 }
 
-                                if (chain.id !== sepolia.id) {
+                                if (chain.id !== baseSepolia.id) {
                                   return (
                                     <div className="space-y-2">
                                       <Button

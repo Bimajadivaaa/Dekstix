@@ -31,7 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useWallet } from "@/lib/hooks/use-wallet";
 import { toast } from "sonner";
 import { useAccount, useChainId } from "wagmi";
-import { sepolia } from "wagmi/chains";
+import { baseSepolia } from "wagmi/chains";
 
 export default function TicketingSystem() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -49,7 +49,7 @@ export default function TicketingSystem() {
   const chainId = useChainId();
   
   // Direct chain validation
-  const isWrongNetwork = isConnected && chainId !== sepolia.id;
+  const isWrongNetwork = isConnected && chainId !== baseSepolia.id;
 
   useEffect(() => {
     setIsMounted(true);
@@ -141,7 +141,7 @@ export default function TicketingSystem() {
   const handleSelectEvent = (event: Event) => {
     // Prevent selecting event if on wrong network
     if (isWrongNetwork) {
-      toast.error("Please switch to Sepolia network to view tickets");
+      toast.error("Please switch to Base Sepolia network to view tickets");
       return; // Don't proceed if on wrong network
     }
     setSelectedEvent(event);

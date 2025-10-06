@@ -5,7 +5,7 @@ import {
   // mainnet,
   // optimism,
   // polygon,
-  sepolia,
+  baseSepolia,
 } from 'wagmi/chains';
 import { env } from './env';
 import { http, fallback } from 'viem';
@@ -19,16 +19,21 @@ export const config = getDefaultConfig({
     // optimism,
     // arbitrum,
     // base,
-    sepolia,
+    baseSepolia,
   ],
   ssr: true,
   transports: {
-    // Define custom RPCs for each chain
-    [sepolia.id]: fallback([
-      http('https://eth-sepolia.public.blastapi.io'), // Primary RPC (lebih stabil)
-      http('https://ethereum-sepolia.blockpi.network/v1/rpc/public'), // Fallback RPC 1
-      http('https://sepolia.gateway.tenderly.co'), // Fallback RPC 2
-      http('https://rpc.sepolia.org'), // Fallback RPC 3
-    ]),
+    // Define custom RPCs for each chain with more reliable endpoints
+    [baseSepolia.id]: fallback([
+      http('https://sepolia.base.org'), // Primary official RPC
+      http('https://base-sepolia-rpc.publicnode.com'), // PublicNode fallback
+      http('https://base-sepolia.blockpi.network/v1/rpc/public'), // BlockPI fallback
+      http('https://base-sepolia.gateway.tenderly.co'), // Tenderly fallback
+      http('https://rpc.notadegen.com/base/sepolia'), // NotADegen fallback
+    ], {
+      rank: true,
+      retryCount: 3,
+      retryDelay: 1000,
+    }),
   },
 });
