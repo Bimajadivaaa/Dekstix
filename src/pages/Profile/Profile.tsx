@@ -72,7 +72,7 @@ import { useGetTicketCode } from "@/lib/hooks/read/useGetTicketCode";
 import { TICKETING_ADDRESS } from "@/config/const";
 import { useGetTicketExpired } from "@/lib/hooks/read/useGetTicketExpired";
 
-const SEPOLIA_EXPLORER = "https://sepolia.etherscan.io";
+const SEPOLIA_EXPLORER = "https://sepolia.basescan.org/";
 
 // Tambahkan komponen SkeletonCard
 const SkeletonCard = () => {

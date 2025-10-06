@@ -334,12 +334,12 @@ export function TicketCheckout({
                 {vipTxHash && isSubmitted && (
                   <div className="mt-4 text-center">
                     <a
-                      href={`https://sepolia.etherscan.io/tx/${vipTxHash}`}
+                      href={`https://sepolia.basescan.org//tx/${vipTxHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors"
                     >
-                      View on Sepolia Explorer
+                      View on Base Sepolia Explorer
                       <svg
                         className="h-3 w-3"
                         fill="none"
@@ -542,7 +542,7 @@ export function TicketCheckout({
                         Your ticket has been purchased and added to your wallet
                       </p>
                       <a
-                        href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                        href={`https://sepolia.basescan.org//tx/${txHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-400 text-sm hover:underline mt-2 inline-block"

@@ -594,12 +594,12 @@ export default function EnhancedValidation() {
                               </Button>
                             </div>
                             <a
-                              href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                              href={`https://sepolia.basescan.org//tx/${txHash}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors mt-2"
                             >
-                              View on Sepolia Explorer
+                              View on Base Sepolia Explorer
                               <svg
                                 className="h-3 w-3"
                                 fill="none"

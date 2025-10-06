@@ -133,7 +133,7 @@ export default function About() {
                     </span>
                     <span className="text-sm font-mono text-white truncate max-w-[180px]">
                       <a
-                        href="https://sepolia.etherscan.io/address/0x57b0aa66587b487c58a8f585fa6ce83b52a2c635"
+                        href="https://sepolia.basescan.org//address/0x57b0aa66587b487c58a8f585fa6ce83b52a2c635"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-white/70 hover:text-white hover:underline"
