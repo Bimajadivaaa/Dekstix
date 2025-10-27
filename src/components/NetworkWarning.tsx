@@ -14,9 +14,10 @@ export function NetworkWarning({ showFullWarning = false, className = "", showSw
   const { isWrongNetwork, networkName, requiredChainId, isRpcHealthy, currentChainId } = useNetworkValidation();
   const { switchChain, isPending, error } = useSwitchChain();
 
-  if (!isWrongNetwork) return null;
-  
   const isRpcIssue = currentChainId === requiredChainId && !isRpcHealthy;
+  const shouldShowWarning = isWrongNetwork || isRpcIssue;
+
+  if (!shouldShowWarning) return null;
 
   const handleSwitchNetwork = async () => {
     try {

@@ -44,7 +44,7 @@ export function useNetworkValidation() {
 
   return {
     isConnected,
-    isWrongNetwork: isWrongNetwork || (isConnected && chainId === baseSepolia.id && !isRpcHealthy),
+    isWrongNetwork,
     isCorrectNetwork,
     currentChainId: chainId,
     requiredChainId: baseSepolia.id,
