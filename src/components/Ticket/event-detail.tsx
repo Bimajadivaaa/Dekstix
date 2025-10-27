@@ -107,8 +107,11 @@ export function EventDetail({
                 <h3 className="font-medium text-sm text-white/50 mb-1">
                   Availability
                 </h3>
-                <p className="text-white">
+                {/* <p className="text-white">
                   {event.remaining} of {event.capacity} NFT tickets Available
+                </p> */}
+                 <p className="text-white">
+                  {event.capacity} NFT tickets Available
                 </p>
               </div>
 

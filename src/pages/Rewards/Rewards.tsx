@@ -398,7 +398,7 @@ export default function RewardsPage() {
         ) : (
           <>
             {/* User Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
               <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
@@ -406,14 +406,14 @@ export default function RewardsPage() {
                       <Package className="h-5 w-5 text-blue-400" />
                     </div>
                     <div>
-                      <p className="text-white/70 text-sm">Total NFTs</p>
+                      <p className="text-white/70 text-sm">Total Your NFT Ticket</p>
                       <p className="text-2xl font-bold text-white">{userStats.totalNFTs}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/5 border-white/10">
+              {/* <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-purple-500/20">
@@ -425,7 +425,7 @@ export default function RewardsPage() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
             </div>
 
             {/* Collection Progress */}
@@ -478,7 +478,7 @@ export default function RewardsPage() {
                 }
               >
                 <Package className="h-4 w-4 mr-2" />
-                My Collection
+                My NFT Ticket
               </Button>
               <Button
                 variant={selectedTab === "rewards" ? "default" : "outline"}
@@ -489,7 +489,7 @@ export default function RewardsPage() {
                 }
               >
                 <Coins className="h-4 w-4 mr-2" />
-                Token Rewards
+                Claim Rewards
               </Button>
             </div>
 
@@ -671,7 +671,7 @@ export default function RewardsPage() {
                           ) : reward.status === "locked" ? (
                             "Requirements Not Met"
                           ) : (
-                            `Claim ${reward.tokenAmount} ${reward.tokenSymbol}`
+                            `Claim ${reward.tokenAmount} ${reward.tokenSymbol} Token`
                           )}
                         </Button>
                       </div>

@@ -427,7 +427,7 @@ export default function Profile() {
               className="rounded-md data-[state=active]:bg-white data-[state=active]:text-black"
             >
               <Ticket className="h-4 w-4 mr-2" />
-              <span>NFT Collection</span>
+              <span>NFT Ticket Collection</span>
             </TabsTrigger>
             <TabsTrigger
               value="history"
