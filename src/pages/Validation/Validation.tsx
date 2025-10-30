@@ -69,6 +69,38 @@ type NFTMetadata = {
 // Map for ticket types
 const TICKET_TYPES = ["Standard Ticket", "Premium Ticket", "VIP Ticket"];
 
+// Component to show ticket status
+function TicketStatusBadge({ ticketId }: { ticketId: bigint }) {
+  const { isUsed, isLoading } = useGetStatusNFT(BigInt(ticketId));
+  
+  if (isLoading) {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-white/10 text-white/70 border-white/20"
+      >
+        <Loader2 className="h-2 w-2 animate-spin mr-1" />
+        <span className="text-xs">Checking...</span>
+      </Badge>
+    );
+  }
+  
+  return (
+    <Badge
+      variant="outline"
+      className={
+        isUsed
+          ? "bg-red-500/20 text-red-400 border-red-500/20"
+          : "bg-green-500/20 text-green-400 border-green-500/20"
+      }
+    >
+      <span className="text-xs font-medium">
+        {isUsed ? "Generated" : "Available"}
+      </span>
+    </Badge>
+  );
+}
+
 export default function EnhancedValidation() {
   // Get chainId for network validation
   const chainId = useChainId();
@@ -536,6 +568,7 @@ export default function EnhancedValidation() {
                       "Standard Ticket"}{" "}
                     NFT
                   </p>
+                  <TicketStatusBadge ticketId={selectedTicket.tokenId} />
                 </div>
               )}
 
@@ -643,14 +676,14 @@ export default function EnhancedValidation() {
                   <div className="space-y-4">
                     {tickets.length > 1 && (
                       <div className="space-y-2">
-                        <label className="text-sm text-white/70">
+                        <label className="text-sm text-white font-bold">
                           Select Ticket to Validate
                         </label>
                         <Select
                           value={selectedTicket?.tokenId.toString()}
                           onValueChange={handleTicketSelect}
                         >
-                          <SelectTrigger className="w-full bg-white/5 border-white/10 text-white">
+                          <SelectTrigger className="w-full h-18 bg-white/5 border-white/10 text-white text-base">
                             <SelectValue placeholder="Select a ticket" />
                           </SelectTrigger>
                           <SelectContent className="bg-[#1a1a1a] border-white/10">
@@ -658,22 +691,27 @@ export default function EnhancedValidation() {
                               <SelectItem
                                 key={ticket.tokenId.toString()}
                                 value={ticket.tokenId.toString()}
-                                className="text-white hover:bg-white/5 focus:bg-white/5 cursor-pointer"
+                                className="text-white hover:bg-white/5 focus:bg-white/5 cursor-pointer py-4 px-4"
                               >
-                                <div className="flex items-center gap-2">
-                                  <Ticket className="h-4 w-4 text-white" />
-                                  <span className="text-sm font-mono font-medium text-white truncate">
-                                    {ticket.eventName} Ticket
-                                  </span>
-                                  <Badge
-                                    variant="outline"
-                                    className="ml-auto bg-white/20 border-white/20 text-white/80 hover:bg-transparent"
-                                  >
-                                    <span className="text-xs font-medium text-white truncate">
-                                      {TICKET_TYPES[ticket.ticketType] ||
-                                        "Standard Ticket"}
+                                <div className="flex items-center gap-3 w-full">
+                                  <Ticket className="h-5 w-5 text-white flex-shrink-0" />
+                                  <div className="flex flex-col flex-1 min-w-0">
+                                    <span className="text-sm font-mono font-medium text-white truncate">
+                                      {ticket.eventName} Ticket
                                     </span>
-                                  </Badge>
+                                    <div className="flex items-center gap-2 mt-2">
+                                      <Badge
+                                        variant="outline"
+                                        className="bg-white/20 border-white/20 text-white/80 hover:bg-transparent"
+                                      >
+                                        <span className="text-xs font-medium text-white truncate">
+                                          {TICKET_TYPES[ticket.ticketType] ||
+                                            "Standard Ticket"}
+                                        </span>
+                                      </Badge>
+                                      <TicketStatusBadge ticketId={ticket.tokenId} />
+                                    </div>
+                                  </div>
                                 </div>
                               </SelectItem>
                             ))}
@@ -690,20 +728,12 @@ export default function EnhancedValidation() {
                         <div className="flex items-center justify-center gap-2">
                           <Badge
                             variant="outline"
-                            className={getStatusDisplay().className}
-                          >
-                            {isLoadingStatus && (
-                              <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                            )}
-                            {getStatusDisplay().message}
-                          </Badge>
-                          <Badge
-                            variant="outline"
                             className="bg-white/10 text-white/70 border-white/20"
                           >
                             {TICKET_TYPES[selectedTicket.ticketType] ||
                               "Standard"}
                           </Badge>
+                          <TicketStatusBadge ticketId={selectedTicket.tokenId} />
                         </div>
                         <p className="text-sm text-white/70">
                           Token ID: #{Number(selectedTicket.tokenId)}
