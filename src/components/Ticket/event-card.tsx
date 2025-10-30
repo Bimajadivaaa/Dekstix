@@ -89,7 +89,7 @@ export function EventCard({ event, onSelect }: EventCardProps) {
   };
 
   return (
-    <Card className="overflow-hidden bg-[#1a1a1a] border border-white/10 hover:shadow-xl hover:shadow-white/10 transition-all duration-300">
+    <Card className="overflow-hidden bg-[#1a1a1a] border border-white/10 hover:shadow-xl hover:shadow-white/10 transition-all duration-300 flex flex-col h-full">
       <div className="relative flex justify-center items-center bg-white/5 border-b border-white/10 h-[25rem]">
         <Image
           src={event.image}
@@ -104,7 +104,7 @@ export function EventCard({ event, onSelect }: EventCardProps) {
         />
       </div>
 
-      <CardHeader>
+      <CardHeader className="pb-4">
         <div className="flex gap-2 mb-3">
           {event.categories.slice(0, 2).map((category, index) => (
             <Badge
@@ -117,42 +117,42 @@ export function EventCard({ event, onSelect }: EventCardProps) {
           ))}
         </div>
         <CardTitle
-          className={`text-white ${
+          className={`text-white text-xl leading-tight min-h-[3.5rem] flex items-start ${
             !isDisabled ? "cursor-pointer" : "cursor-not-allowed opacity-50"
           }`}
           onClick={handleClick}
         >
           {event.title}
         </CardTitle>
-        <CardDescription className="text-white/70">
+        <CardDescription className="text-white/70 text-sm min-h-[2.5rem] line-clamp-2">
           {event.description}
         </CardDescription>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="flex-1">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-white/50" />
+            <Calendar className="h-4 w-4 text-white/50 flex-shrink-0" />
             <span className="text-sm text-white/70">{event.date}</span>
           </div>
           <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-white/50" />
-            <span className="text-sm text-white/70">{event.location}</span>
+            <MapPin className="h-4 w-4 text-white/50 flex-shrink-0" />
+            <span className="text-sm text-white/70 line-clamp-2">{event.location}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Ticket className="h-4 w-4 text-white/50" />
+            <Ticket className="h-4 w-4 text-white/50 flex-shrink-0" />
             <span className="text-sm text-white/70">
               {event.remaining} tickets remaining
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Speaker className="h-4 w-4 text-white/50" />
-            <span className="text-sm text-white/70">{event.speakers}</span>
+            <Speaker className="h-4 w-4 text-white/50 flex-shrink-0" />
+            <span className="text-sm text-white/70 line-clamp-1">{event.speakers}</span>
           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="flex flex-col gap-2">
+      <CardFooter className="flex flex-col gap-2 mt-auto pt-4">
         <Button
           variant="outline"
           className={`w-full border-white/20 ${
@@ -182,7 +182,7 @@ export function EventCard({ event, onSelect }: EventCardProps) {
         </Button>
 
         {isWrongNetwork && (
-          <p className="text-red-400 text-xs text-center">
+          <p className="text-red-400 text-xs text-center min-h-[1rem]">
             Please switch to Base Sepolia network to view tickets
           </p>
         )}
