@@ -60,7 +60,7 @@ export function PurchaseConfirmationDialog({
             address: TICKETING_ADDRESS,
             abi: TICKETING_ABI,
             functionName: "mintAndBuyVIPTicket",
-            args: [selectedEvent?.eventId || 0, ""], // placeholder URI
+            args: [selectedEvent?.id || 0, ""], // placeholder URI
             value: BigInt(Number(selectedTicket.price) * 1e18),
           });
         } else {
@@ -148,7 +148,7 @@ export function PurchaseConfirmationDialog({
           {/* Event Info */}
           <Card className="bg-white/5 border border-white/10">
             <CardContent className="p-4">
-              <h3 className="text-white font-semibold mb-2">{selectedEvent.name}</h3>
+              <h3 className="text-white font-semibold mb-2">{selectedEvent.title}</h3>
               <div className="space-y-1 text-sm text-white/70">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
