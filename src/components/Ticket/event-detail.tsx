@@ -9,6 +9,7 @@ import { useGetTicketPrice } from "@/lib/hooks/read/useGetTicketPrice";
 import { useNetworkGuard } from "@/lib/hooks/use-network-guard";
 import Image from "next/image";
 import { useEthPrice } from "@/lib/hooks/use-eth-price";
+import { useGetTotalAvailableTickets } from "@/lib/hooks/read/useGetTotalAvailableTickets";
 
 interface EventDetailProps {
   event: Event;
@@ -31,6 +32,13 @@ export function EventDetail({
     useGetTicketPrice(event.id, 2);
 
   const { convertEthToIdr, isLoading: isLoadingPrice } = useEthPrice();
+  
+  const { 
+    standardAvailable, 
+    premiumAvailable, 
+    vipAvailable,
+    isLoading: isLoadingStock 
+  } = useGetTotalAvailableTickets(event.id, event.remaining);
 
   console.log("event id", event.id);
   console.log("available tickets", event.remaining);
@@ -39,24 +47,29 @@ export function EventDetail({
   const updatedTicketTiers = ticketTiers.map((tier) => {
     let currentPrice = tier.price;
     let loading = false;
+    let availableTickets = undefined;
 
     // Match tier name with blockchain prices
     if (tier.name.toLowerCase().includes("standard")) {
       currentPrice = standardPrice ? Number(standardPrice) : tier.price;
       loading = loadingStandard;
+      availableTickets = standardAvailable;
     } else if (tier.name.toLowerCase().includes("premium")) {
       currentPrice = premiumPrice ? Number(premiumPrice) : tier.price;
       loading = loadingPremium;
+      availableTickets = premiumAvailable;
     } else if (tier.name.toLowerCase().includes("vip")) {
       currentPrice = vipPrice ? Number(vipPrice) : tier.price;
       loading = loadingVip;
+      availableTickets = vipAvailable;
     }
 
     // Make sure to preserve all original properties including availableTickets
     return {
       ...tier,
       price: currentPrice,
-      loading,
+      loading: loading || isLoadingStock,
+      availableTickets,
     } as TicketTier; // Explicit type cast to TicketTier
   });
 
@@ -65,7 +78,7 @@ export function EventDetail({
       {/* Event Details */}
       <div>
         <div className="overflow-hidden rounded-lg bg-white/5">
-          <div className="relative w-full h-64 rounded-lg overflow-hidden">
+          <div className="relative w-full h-48 rounded-lg overflow-hidden">
             <Image
               src={event.image || "/placeholder-event.jpg"}
               alt={event.title}
@@ -77,49 +90,35 @@ export function EventDetail({
             <Image
               src={event.image || "/placeholder-event.jpg"}
               alt={event.title}
-              className="relative w-full h-full object-contain z-10"
+              className="relative w-full h-full object-cover z-10"
               width={500}
               height={500}
             />
           </div>
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-2">{event.title}</h2>
-            <p className="text-white/70 mb-4">{event.description}</p>
+          <div className="p-4">
+            <h2 className="text-xl font-bold mb-2">{event.title}</h2>
+            <p className="text-white/70 mb-3 text-sm">{event.description}</p>
 
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium text-sm text-white/50 mb-1">
-                  Date & Time
-                </h3>
-                <p className="text-white">
-                  {event.date} • {event.time}
-                </p>
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <h3 className="font-medium text-white/50 mb-1">Date</h3>
+                  <p className="text-white">{event.date}</p>
+                </div>
+                <div>
+                  <h3 className="font-medium text-white/50 mb-1">Time</h3>
+                  <p className="text-white">{event.time}</p>
+                </div>
               </div>
 
               <div>
-                <h3 className="font-medium text-sm text-white/50 mb-1">
-                  Location
-                </h3>
-                <p className="text-white">{event.location}</p>
+                <h3 className="font-medium text-xs text-white/50 mb-1">Location</h3>
+                <p className="text-white text-sm">{event.location}</p>
               </div>
 
               <div>
-                <h3 className="font-medium text-sm text-white/50 mb-1">
-                  Availability
-                </h3>
-                {/* <p className="text-white">
-                  {event.remaining} of {event.capacity} NFT tickets Available
-                </p> */}
-                 <p className="text-white">
-                  {event.capacity} NFT tickets Available
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-medium text-sm text-white/50 mb-1">
-                  Speaker
-                </h3>
-                <p className="text-white">{event.speakers}</p>
+                <h3 className="font-medium text-xs text-white/50 mb-1">Speaker</h3>
+                <p className="text-white text-sm">{event.speakers}</p>
               </div>
             </div>
           </div>
@@ -206,6 +205,30 @@ export function EventDetail({
                   Sold Out
                 </Button>
               )}
+
+              {/* <Button
+                  onClick={() => onSelectTicket(ticket)}
+                  disabled={
+                    ticket.loading ||
+                    ("availableTickets" in ticket &&
+                      ticket.availableTickets !== undefined &&
+                      ticket.availableTickets <= 0)
+                  }
+                  className="w-full bg-white text-black hover:bg-white/90"
+                >
+                  {ticket.loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading Price
+                    </>
+                  ) : "availableTickets" in ticket &&
+                    ticket.availableTickets !== undefined &&
+                    ticket.availableTickets <= 0 ? (
+                    "Sold Out"
+                  ) : (
+                    `Buy for ${ticket.price} ETH`
+                  )}
+                </Button> */}
               
               {/* Show network warning but don't disable purchase buttons */}
               {isWrongNetwork && (

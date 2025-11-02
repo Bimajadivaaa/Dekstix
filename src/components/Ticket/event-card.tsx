@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, MapPin, Speaker, Ticket, AlertTriangle } from "lucide-react";
+import { Calendar, MapPin, Speaker, Ticket, AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
+import { useGetTotalAvailableTickets } from "@/lib/hooks/read/useGetTotalAvailableTickets";
 
 interface EventCardProps {
   event: Event;
@@ -28,6 +29,8 @@ export function EventCard({ event, onSelect }: EventCardProps) {
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
   const [walletChainId, setWalletChainId] = useState<number | null>(null);
+  
+  const { totalAvailable, isLoading: isLoadingTickets } = useGetTotalAvailableTickets(event.id, event.remaining);
 
   const wcChainId = walletClient?.chain?.id;
 
@@ -63,6 +66,7 @@ export function EventCard({ event, onSelect }: EventCardProps) {
     [walletChainId]
   );
 
+  const displayRemaining = isLoadingTickets ? event.remaining : totalAvailable;
   const isDisabled = !isConnected || isWrongNetwork;
 
   const handleFixNetwork = () => {
@@ -90,7 +94,7 @@ export function EventCard({ event, onSelect }: EventCardProps) {
 
   return (
     <Card className="overflow-hidden bg-[#1a1a1a] border border-white/10 hover:shadow-xl hover:shadow-white/10 transition-all duration-300 flex flex-col h-full">
-      <div className="relative flex justify-center items-center bg-white/5 border-b border-white/10 h-[25rem]">
+      <div className="relative flex justify-center items-center bg-white/5 border-b border-white/10 h-[15rem]">
         <Image
           src={event.image}
           alt={event.title}
@@ -142,10 +146,17 @@ export function EventCard({ event, onSelect }: EventCardProps) {
           <div className="flex items-center gap-2">
             <Ticket className="h-4 w-4 text-white/50 flex-shrink-0" />
             <span className="text-sm text-white/70">
-              {event.remaining} tickets remaining
+              {isLoadingTickets ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin mr-1 inline" />
+                  Loading tickets...
+                </>
+              ) : (
+                `${displayRemaining} tickets remaining`
+              )}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex ixtems-center gap-2">
             <Speaker className="h-4 w-4 text-white/50 flex-shrink-0" />
             <span className="text-sm text-white/70 line-clamp-1">{event.speakers}</span>
           </div>
@@ -158,16 +169,20 @@ export function EventCard({ event, onSelect }: EventCardProps) {
           className={`w-full border-white/20 ${
             isWrongNetwork
               ? "bg-red-500/10 text-red-400 hover:bg-red-500/20"
+              : displayRemaining <= 0
+              ? "bg-gray-600 text-gray-400"
               : "bg-white/10 text-white hover:bg-white/20"
           } disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed`}
           onClick={isWrongNetwork ? handleFixNetwork : handleClick}
-          disabled={isDisabled}
+          disabled={isDisabled || displayRemaining <= 0}
           
           title={
             isDisabled
               ? !isConnected
                 ? "Please connect your wallet"
                 : "Please switch to Base Sepolia network"
+              : displayRemaining <= 0
+              ? "No tickets available"
               : ""
           }
         >
@@ -176,6 +191,8 @@ export function EventCard({ event, onSelect }: EventCardProps) {
               <AlertTriangle className="h-2 w-2 mr-2" />
               Wrong Network
             </button>
+          ) : displayRemaining <= 0 ? (
+            "Sold Out"
           ) : (
             "View Tickets"
           )}

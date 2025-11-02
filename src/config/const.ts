@@ -635,6 +635,13 @@ export const TICKETING_ABI = [
     type: "function",
   },
   {
+    inputs: [{ internalType: "string", name: "code", type: "string" }],
+    name: "getValidTicketCode",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       { internalType: "address", name: "owner", type: "address" },
       { internalType: "address", name: "operator", type: "address" },

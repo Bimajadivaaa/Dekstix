@@ -18,7 +18,8 @@ import {
   Image,
   Package,
   Award,
-  Target
+  Target,
+  Loader2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useWallet } from "@/lib/hooks/use-wallet";
@@ -303,62 +304,58 @@ export default function RewardsPage() {
   };
 
   const handleClaimTokenReward = async (rewardId: number) => {
-    if (isWrongNetwork) {
-      toast.error("Please switch to Base Sepolia network to claim rewards");
+    // Check if already claiming to prevent multiple clicks
+    if (claimingRewards.has(rewardId)) {
       return;
     }
 
-    if (!address) {
-      toast.error("Please connect your wallet first");
-      return;
-    }
-
+    // Check if reward is available before setting claiming state
     const reward = tokenRewards.find(r => r.id === rewardId);
-    if (!reward) return;
-
-    if (reward.status !== "available") {
-      toast.error("This reward is not available for claiming");
+    if (!reward || reward.status !== "available") {
       return;
     }
 
-    // Check NFT requirement
-    if (reward.nftType === "VIP") {
-      // Special check for VIP tickets (ticketType 2 = VIP)
-      const hasVIPTicket = tickets.some(ticket => ticket.ticketType === 2);
-      if (isMounted) {
-        console.log("Debug - Claiming VIP reward - hasVIPTicket:", hasVIPTicket);
-      }
-      if (!hasVIPTicket) {
-        toast.error("You need to hold at least 1 VIP ticket to claim this reward.");
-        return;
-      }
-    } else {
-      // Regular NFT count requirement
-      const totalNFTs = tickets.length;
-      if (totalNFTs < reward.nftRequirement) {
-        toast.error(`You need ${reward.nftRequirement} NFTs to claim this reward. You currently have ${totalNFTs} NFTs.`);
-        return;
-      }
-    }
+    // Set claiming state immediately when button is clicked
+    setClaimingRewards(prev => new Set(prev).add(rewardId));
 
     try {
-      // Add this reward to claiming set
-      setClaimingRewards(prev => new Set(prev).add(rewardId));
-      
+      if (isWrongNetwork) {
+        toast.error("Please switch to Base Sepolia network to claim rewards");
+        return;
+      }
+
+      if (!address) {
+        toast.error("Please connect your wallet first");
+        return;
+      }
+
+      // Check NFT requirement
+      if (reward.nftType === "VIP") {
+        // Special check for VIP tickets (ticketType 2 = VIP)
+        const hasVIPTicket = tickets.some(ticket => ticket.ticketType === 2);
+        if (isMounted) {
+          console.log("Debug - Claiming VIP reward - hasVIPTicket:", hasVIPTicket);
+        }
+        if (!hasVIPTicket) {
+          toast.error("You need to hold at least 1 VIP ticket to claim this reward.");
+          return;
+        }
+      } else {
+        // Regular NFT count requirement
+        const totalNFTs = tickets.length;
+        if (totalNFTs < reward.nftRequirement) {
+          toast.error(`You need ${reward.nftRequirement} NFTs to claim this reward. You currently have ${totalNFTs} NFTs.`);
+          return;
+        }
+      }
+
       // Mint DEKSTIX tokens to the user's address
       await handleMintTokens(address, reward.tokenAmount.toString());
-      
-      // Remove from claiming set on success/failure
-      setClaimingRewards(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(rewardId);
-        return newSet;
-      });
+    
     } catch (error) {
       console.error("Failed to claim reward:", error);
       toast.error("Failed to claim reward. Please try again.");
-      
-      // Remove from claiming set on error
+      // Only clear claiming state on error, success is handled by useEffect
       setClaimingRewards(prev => {
         const newSet = new Set(prev);
         newSet.delete(rewardId);
@@ -667,7 +664,10 @@ export default function RewardsPage() {
                           variant={reward.status === "available" ? "default" : "outline"}
                         >
                           {claimingRewards.has(reward.id) ? (
-                            "Claiming..."
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Claiming...
+                            </>
                           ) : reward.status === "locked" ? (
                             "Requirements Not Met"
                           ) : (

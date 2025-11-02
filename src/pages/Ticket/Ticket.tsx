@@ -221,7 +221,7 @@ export default function TicketingSystem() {
         )}
 
         {!address ? (
-          <div className="flex flex-col items-center justify-center h-96">
+          <div className="flex flex-col items-center justify-center h-70">
             <Ticket className="h-12 w-12 mb-4 text-white/30" />
             <h2 className="text-2xl font-semibold text-white/80 mb-2">
               Please connect your wallet to view events
