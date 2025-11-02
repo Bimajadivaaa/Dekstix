@@ -385,7 +385,7 @@ export default function EnhancedValidation() {
   }
 
   return (
-    <div className="relative py-16 px-4 min-h-screen overflow-hidden bg-gradient-to-br from-black via-[#0a0a0a] to-black text-white">
+    <div className="relative py-10 px-4 min-h-screen overflow-hidden bg-gradient-to-br from-black via-[#0a0a0a] to-black text-white">
       {/* Background Decorative Elements */}
       <div className="absolute inset-0 opacity-30 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/10 to-white/20 animate-gradient-x"></div>
@@ -396,18 +396,14 @@ export default function EnhancedValidation() {
       <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full mix-blend-screen filter blur-xl opacity-20"></div>
       <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white/10 rounded-full mix-blend-screen filter blur-xl opacity-20"></div>
 
-      <div className="container relative mx-auto max-w-4xl">
-        <div className="flex flex-col items-center mb-12 text-center">
-          <Badge className="mb-4 px-3 py-1 bg-white/10 text-white/70 rounded-full border border-white/20">
-            <ShieldCheck className="h-3.5 w-3.5 mr-1 text-white/70" /> Secure
-            Verification
-          </Badge>
+      <div className="container relative mx-auto max-w-3xl">
+        <div className="flex flex-col items-center mb-5 text-center">
 
-          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+          {/* <h1 className="text-2xl md:text-4xl font-bold mb-4 text-white">
             Generate your NFT Ticket Code
-          </h1>
+          </h1> */}
 
-          <p className="text-lg text-white/70 max-w-2xl">
+          <p className="text-lg text-white/70 max-w-xl">
             Generate your{" "}
             <span className="text-white/90 font-semibold">NFT</span> ticket to
             receive a unique access code for event entry
@@ -426,7 +422,7 @@ export default function EnhancedValidation() {
             </CardHeader>
 
             <CardContent className="space-y-6 pb-4">
-              {isConnected && (
+              {/* {isConnected && (
                 <div className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between">
                   <div className="flex items-center">
                     <Wallet className="h-5 w-5 text-white/60 mr-2" />
@@ -457,7 +453,7 @@ export default function EnhancedValidation() {
                       : `${tickets.length} Tickets`}
                   </Badge>
                 </div>
-              )}
+              )} */}
 
               <div className="flex justify-center">
                 <div className="relative w-48 h-48 rounded-lg overflow-hidden border border-white/20">
@@ -677,21 +673,21 @@ export default function EnhancedValidation() {
                     {tickets.length > 1 && (
                       <div className="space-y-2">
                         <label className="text-sm text-white font-bold">
-                          Select Ticket to Validate
+                          Choose Ticket to Validate
                         </label>
                         <Select
                           value={selectedTicket?.tokenId.toString()}
                           onValueChange={handleTicketSelect}
                         >
-                          <SelectTrigger className="w-full h-18 bg-white/5 border-white/10 text-white text-base">
+                          <SelectTrigger className="w-full h-18 bg-white/10 border-white/20 text-white text-base hover:bg-white/15 hover:border-white/30 focus:bg-white/15 focus:border-white/40 focus:ring-2 focus:ring-white/20 transition-all duration-200">
                             <SelectValue placeholder="Select a ticket" />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#1a1a1a] border-white/10">
+                          <SelectContent className="bg-[#1a1a1a] border-white/20 shadow-2xl backdrop-blur-lg">
                             {tickets.map((ticket) => (
                               <SelectItem
                                 key={ticket.tokenId.toString()}
                                 value={ticket.tokenId.toString()}
-                                className="text-white hover:bg-white/5 focus:bg-white/5 cursor-pointer py-4 px-4"
+                                className="text-white hover:bg-white/10 focus:bg-white/15 data-[highlighted]:bg-white/15 cursor-pointer py-4 px-4 transition-all duration-200"
                               >
                                 <div className="flex items-center gap-3 w-full">
                                   <Ticket className="h-5 w-5 text-white flex-shrink-0" />
@@ -702,7 +698,7 @@ export default function EnhancedValidation() {
                                     <div className="flex items-center gap-2 mt-2">
                                       <Badge
                                         variant="outline"
-                                        className="bg-white/20 border-white/20 text-white/80 hover:bg-transparent"
+                                        className="bg-white/30 border-white/30 text-white hover:bg-white/40 transition-colors duration-200"
                                       >
                                         <span className="text-xs font-medium text-white truncate">
                                           {TICKET_TYPES[ticket.ticketType] ||

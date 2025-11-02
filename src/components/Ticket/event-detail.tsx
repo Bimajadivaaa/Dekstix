@@ -10,6 +10,7 @@ import { useNetworkGuard } from "@/lib/hooks/use-network-guard";
 import Image from "next/image";
 import { useEthPrice } from "@/lib/hooks/use-eth-price";
 import { useGetTotalAvailableTickets } from "@/lib/hooks/read/useGetTotalAvailableTickets";
+import { useGetEventTicketStock } from "@/lib/hooks/read/useGetEventTicketStock";
 
 interface EventDetailProps {
   event: Event;
@@ -39,6 +40,9 @@ export function EventDetail({
     vipAvailable,
     isLoading: isLoadingStock 
   } = useGetTotalAvailableTickets(event.id, event.remaining);
+
+  // Get overall event ticket stock for VIP display
+  const { remainingTickets: totalRemainingTickets } = useGetEventTicketStock(event.id);
 
   console.log("event id", event.id);
   console.log("available tickets", event.remaining);
@@ -155,6 +159,13 @@ export function EventDetail({
                       <span>~ {convertEthToIdr(ticket.price)}</span>
                     )}
                   </div>
+                  
+                  {/* Display available tickets for VIP */}
+                  {ticket.name.toLowerCase().includes("vip") && (
+                    <div className="text-sm text-white/50 mt-1">
+                      {totalRemainingTickets} tickets available
+                    </div>
+                  )}
                 </div>
               </div>
 
