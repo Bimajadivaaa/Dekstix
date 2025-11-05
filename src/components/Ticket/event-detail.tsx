@@ -187,7 +187,7 @@ export function EventDetail({
                 </div>
               )}
 
-              {event.remaining > 0 ? (
+              {/* {event.remaining > 0 ? (
                 <Button
                   onClick={() => onSelectTicket(ticket)}
                   disabled={
@@ -215,9 +215,9 @@ export function EventDetail({
                 <Button disabled className="w-full bg-white/50 text-white">
                   Sold Out
                 </Button>
-              )}
+              )} */}
 
-              {/* <Button
+              <Button
                   onClick={() => onSelectTicket(ticket)}
                   disabled={
                     ticket.loading ||
@@ -239,7 +239,7 @@ export function EventDetail({
                   ) : (
                     `Buy for ${ticket.price} ETH`
                   )}
-                </Button> */}
+                </Button>
               
               {/* Show network warning but don't disable purchase buttons */}
               {isWrongNetwork && (
