@@ -82,6 +82,7 @@ export const TICKETING_ABI = [
     type: "error",
   },
   { inputs: [], name: "TicketAlreadyUsed", type: "error" },
+  { inputs: [], name: "TicketCodeAlreadyGenerated", type: "error" },
   { inputs: [], name: "TicketNotAvailable", type: "error" },
   { inputs: [], name: "TicketNotUsed", type: "error" },
   {
@@ -165,6 +166,12 @@ export const TICKETING_ABI = [
       },
       { indexed: false, internalType: "bool", name: "isValid", type: "bool" },
       { indexed: false, internalType: "bool", name: "isUsed", type: "bool" },
+      {
+        indexed: false,
+        internalType: "enum ITicketTypes.TicketType",
+        name: "ticketType",
+        type: "uint8",
+      },
     ],
     name: "CodeVerified",
     type: "event",
@@ -467,6 +474,24 @@ export const TICKETING_ABI = [
     inputs: [{ internalType: "uint256", name: "tokenId", type: "uint256" }],
     name: "getApproved",
     outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "string", name: "code", type: "string" }],
+    name: "getCodeInfo",
+    outputs: [
+      { internalType: "bool", name: "isValid", type: "bool" },
+      { internalType: "bool", name: "isUsed", type: "bool" },
+      { internalType: "string", name: "eventName", type: "string" },
+      {
+        internalType: "enum ITicketTypes.TicketType",
+        name: "ticketType",
+        type: "uint8",
+      },
+      { internalType: "uint256", name: "tokenId", type: "uint256" },
+      { internalType: "uint256", name: "eventId", type: "uint256" },
+    ],
     stateMutability: "view",
     type: "function",
   },
@@ -862,7 +887,14 @@ export const TICKETING_ABI = [
   {
     inputs: [{ internalType: "string", name: "code", type: "string" }],
     name: "verifyCode",
-    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    outputs: [
+      { internalType: "bool", name: "isValid", type: "bool" },
+      {
+        internalType: "enum ITicketTypes.TicketType",
+        name: "ticketType",
+        type: "uint8",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "function",
   },

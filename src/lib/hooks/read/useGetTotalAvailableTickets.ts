@@ -16,14 +16,14 @@ export const useGetTotalAvailableTickets = (eventId: number, eventRemaining: num
     totalRemainingTickets; // Use totalRemainingTickets for VIP like in event-detail
 
   // Debug log
-  console.log("Debug - Total calculation:", {
-    standard: standardStock.remainingTickets,
-    premium: premiumStock.remainingTickets,
-    totalRemainingTickets,
-    eventRemaining,
-    vipStock: vipStock.remainingTickets,
-    total: totalAvailable
-  });
+  // console.log("Debug - Total calculation:", {
+  //   standard: standardStock.remainingTickets,
+  //   premium: premiumStock.remainingTickets,
+  //   totalRemainingTickets,
+  //   eventRemaining,
+  //   vipStock: vipStock.remainingTickets,
+  //   total: totalAvailable
+  // });
 
   const isLoading = 
     standardStock.isFetchingData || 

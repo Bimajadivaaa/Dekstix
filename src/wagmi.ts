@@ -23,8 +23,8 @@ export const config = getDefaultConfig({
   ],
   ssr: true,
   transports: {
-    // Define custom RPCs for each chain with more reliable endpoints
     [baseSepolia.id]: fallback([
+      http('https://base-sepolia.g.alchemy.com/v2/6Re8Dr_EVOkbkkMAA4j6j'), // Alchemy RPC
       http('https://sepolia.base.org'), // Primary official RPC
       http('https://base-sepolia-rpc.publicnode.com'), // PublicNode fallback
       http('https://base-sepolia.blockpi.network/v1/rpc/public'), // BlockPI fallback
